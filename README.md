@@ -1,8 +1,8 @@
 <h1 align="center">EPorner API</h1> 
 
 <div align="center">
-    <a href="https://pepy.tech/project/hqporner_api"><img src="https://static.pepy.tech/badge/hqporner_api" alt="Downloads"></a>
-    <a href="https://github.com/EchterAlsFake/hqporner_api/workflows/"><img src="https://github.com/EchterAlsFake/hqporner_api/workflows/CodeQL/badge.svg" alt="CodeQL Analysis"/></a>
+    <a href="https://pepy.tech/project/eporner_api"><img src="https://static.pepy.tech/badge/eporner_api" alt="Downloads"></a>
+    <a href="https://github.com/EchterAlsFake/EPorner_API/workflows/"><img src="https://github.com/EchterAlsFake/EPorner_API/workflows/CodeQL/badge.svg" alt="CodeQL Analysis"/></a>
 </div>
 
 # Description
@@ -17,19 +17,36 @@ EPorner API is an API for EPorner, which allows you to fetch information from vi
 Copyright Information: I have no intention of stealing copyright protected content or slowing down
 a website. Contact me at my E-Mail, and I'll take this Repository immediately offline.
 
-
-# Quickstart
-
-### Have a look at the [Documentation](https://github.com/EchterAlsFake/hqporner_api/blob/master/README/DOCUMENTATION.md) for more details
-
-- Install the library with `pip install hqporner_api`
-
 # Features
 > Webmasters API
+> - 
 > - Information about videos
 > - Search for videos
 > - Search using filters
+> 
+> HTML Content
+> - 
+> - Even more information about videos
+> - Downloading videos
 
+More will be coming in the next versions!
+
+
+# Quickstart
+
+### Have a look at the [Documentation](https://github.com/EchterAlsFake/EPorner_API/blob/master/README/Documentation.md) for more details
+
+## Installation
+
+- Install using `pip`: 
+```shell
+pip install --upgrade eporner_api
+```
+
+- Or from this repo to get the latest fixes/features:
+```shell
+pip install --upgrade git+https://github.com/EchterAlsFake/EPorner_API.git
+```
 
 
 ```python

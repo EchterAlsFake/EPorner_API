@@ -1,19 +1,6 @@
 from enum import Enum
 
 
-class Sort:
-    # Quality
-
-    exclude_low_quality_content = "0"
-    include_low_quality_content = "1"
-    only_low_quality_content = "2"
-
-    """
-    You can also specify the format either XML or Json. We only use JSON in the API!
-    format = json
-    """
-
-
 class Size:
     # Thumbnail Sizes
     small = "small"    # 190x152

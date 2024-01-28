@@ -151,15 +151,8 @@ class Video:
 
         if script_tag:
             json_text = script_tag.string.strip()  # Get the content of the tag as a string
-
-            # Parse the JSON string
-            try:
-                data = json.loads(json_text)
-                return data
-            except json.JSONDecodeError as e:
-                print("Failed to decode JSON:", e)
-        else:
-            print("No matching <script> tag found")
+            data = json.loads(json_text)
+            return data
 
     @cached_property
     def bitrate(self):
