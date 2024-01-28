@@ -1,7 +1,7 @@
 <h1 align="center">EPorner API</h1> 
 
 <div align="center">
-    <a href="https://pepy.tech/project/eporner_api"><img src="https://static.pepy.tech/badge/eporner_api" alt="Downloads"></a>
+    <a href="https://pepy.tech/project/Eporner-API"><img src="https://static.pepy.tech/badge/Eporner-API" alt="Downloads"></a>
     <a href="https://github.com/EchterAlsFake/EPorner_API/workflows/"><img src="https://github.com/EchterAlsFake/EPorner_API/workflows/CodeQL/badge.svg" alt="CodeQL Analysis"/></a>
 </div>
 
@@ -40,7 +40,7 @@ More will be coming in the next versions!
 
 - Install using `pip`: 
 ```shell
-pip install --upgrade eporner_api
+pip install --upgrade Eporner-API
 ```
 
 - Or from this repo to get the latest fixes/features:
@@ -66,7 +66,7 @@ for video in videos:
 ```
 
 # Changelog
-See [Changelog](https://github.com/EchterAlsFake/hqporner_api/blob/master/README/CHANGELOG.md) for more details.
+See [Changelog](https://github.com/EchterAlsFake/EPorner_API/blob/master/README/Changelog.md) for more details.
 
 # Contribution
 Do you see any issues or having some feature requests? Simply open an Issue or talk
