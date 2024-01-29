@@ -2,11 +2,11 @@ import requests
 import json
 import os
 
-from modules.consts import *
-from modules.locals import *
-from modules.errors import *
-from modules.sorting import *
-from modules.progressbar import *
+from .modules.consts import *
+from .modules.locals import *
+from .modules.errors import *
+from .modules.sorting import *
+from .modules.progressbar import *
 from functools import cached_property
 from bs4 import BeautifulSoup
 
