@@ -12,3 +12,4 @@ API_VIDEO_ID = "api/v2/video/id/"
 # REGEXES
 REGEX_ID = re.compile("https://www.eporner.com/video-(.*?)/")
 REGEX_HTML_JSON = re.compile(r'<script type="application/ld\+json">\s*(\{.*?})\s*</script>')
+REGEX_VIDEO_UPLOADER = re.compile(r'title="Uploader">(.*?)</a>')

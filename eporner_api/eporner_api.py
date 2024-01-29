@@ -2,11 +2,20 @@ import requests
 import json
 import os
 
-from .modules.consts import *
-from .modules.locals import *
-from .modules.errors import *
-from .modules.sorting import *
-from .modules.progressbar import *
+try:
+    from .modules.consts import *
+    from .modules.locals import *
+    from .modules.errors import *
+    from .modules.sorting import *
+    from .modules.progressbar import *
+
+except (ModuleNotFoundError, ImportError):
+    from modules.consts import *
+    from modules.locals import *
+    from modules.errors import *
+    from modules.sorting import *
+    from modules.progressbar import *
+
 from functools import cached_property
 from bs4 import BeautifulSoup
 
@@ -199,6 +208,15 @@ class Video:
         else:
             return None
 
+    @cached_property
+    def author(self):
+        """
+        Returns the Uploader of the Video
+        :return: str
+        """
+        if self.enable_html:
+            return REGEX_VIDEO_UPLOADER.search(self.html_content).group(1)
+
     def direct_download_link(self, quality, mode) -> str:
         """
         Returns the direct download URL for a given quality
@@ -244,7 +262,7 @@ class Video:
         # If no specific match is found, return None or the lowest available quality
         return available_links[-1][1] if available_links else None
 
-    def download_video(self, quality, output_path, callback=None, mode=Encoding.mp4_h264):
+    def download_video(self, quality, output_path, callback=None, mode=Encoding.mp4_h264, no_title=False):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
@@ -257,7 +275,9 @@ class Video:
             response_download = session.get(redirected_url, stream=True)
             file_size = int(response_download.headers.get('content-length', 0))
 
-            title = self.title
+            if no_title is False:
+                title = self.title
+
             if not str(output_path).endswith(os.sep):
                 output_path += os.sep
 
@@ -270,7 +290,12 @@ class Video:
             else:
                 extension = ".mp4"  # Should never happen
 
-            final_path = output_path + title + extension
+            if no_title is False:
+                final_path = output_path + title + extension
+
+            else:
+                final_path = output_path  # This is needed to integrate the download process into the Porn Fetch project
+
             if callback is None:
                 progress_bar = Callback()
 
