@@ -278,9 +278,6 @@ class Video:
             if no_title is False:
                 title = self.title
 
-            if not str(output_path).endswith(os.sep):
-                output_path += os.sep
-
             if Encoding.av1:
                 extension = ".av1"
 
