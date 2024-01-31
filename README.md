@@ -72,7 +72,7 @@ See [Changelog](https://github.com/EchterAlsFake/EPorner_API/blob/master/README/
 Do you see any issues or having some feature requests? Simply open an Issue or talk
 in the discussions.
 
-Pull requests are also welcome, but please avoid bs4 and use regex :) 
+Pull requests are also welcome.
 
 # License
 Licensed under the LGPLv3 License

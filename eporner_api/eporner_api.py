@@ -227,6 +227,7 @@ class Video:
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
+        quality = self.fix_quality(quality)
         soup = BeautifulSoup(self.html_content, 'html.parser')
         available_links = []
 
@@ -262,9 +263,27 @@ class Video:
         # If no specific match is found, return None or the lowest available quality
         return available_links[-1][1] if available_links else None
 
+    @classmethod
+    def fix_quality(cls, quality):
+
+        if isinstance(quality, Quality):
+            return quality
+
+        else:
+            if str(quality) == "best":
+                return Quality.BEST
+
+            elif str(quality) == "half":
+                return Quality.HALF
+
+            elif str(quality) == "worst":
+                return Quality.WORST
+
     def download_video(self, quality, output_path, callback=None, mode=Encoding.mp4_h264, no_title=False):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
+
+        quality = self.fix_quality(quality)
 
         session = requests.Session()
         response_redirect_url = session.get(f"https://www.eporner.com{self.direct_download_link(quality, mode)}",

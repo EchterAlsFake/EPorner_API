@@ -1,6 +1,6 @@
 # EPorner Documentation
 
-> - Version 1.0
+> - Version 1.2
 > - Author: Johannes Habel
 > - Copryight (C) 2024
 > - License: GPL 3
@@ -160,12 +160,24 @@ The Quality object has three types:
 
 (I think they explain themselves good enough :)
 
+> You can also pass a string instead of the object.
+
+- For Quality.BEST: `best`
+- For Quality.HALF: `half`
+- For Quality.WORST: `ẁorst`
+
+
+
 ```python
 from eporner_api.modules.locals import Quality
 
 quality = Quality.BEST
 quality = Quality.HALF
 quality = Quality.WORST 
+
+# or 
+
+quality = "best" # etc...
 ```
 
 
