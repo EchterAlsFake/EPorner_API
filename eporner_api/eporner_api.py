@@ -56,7 +56,7 @@ class Video:
         self.enable_html = enable_html_scraping
         self.html_content = None
         self.json_data = self.raw_json_data()
-
+        print(self.json_data)
         if self.enable_html:
             self.request_html_content()
             self.html_json_data = self.extract_json_from_html()
@@ -73,7 +73,12 @@ class Video:
                 return video_id.group(1)
 
             else:
-                raise InvalidURL("The URL is not valid. Couldn't extract ID!")
+                try:
+                    video_id = REGEX_ID_ALTERNATE.search(self.url)
+                    return video_id.group(1)
+
+                except Exception:
+                    raise InvalidURL("The URL is not valid. Couldn't extract ID!")
 
         else:
             return self.url  # Assuming this is a video ID (hopefully)
@@ -155,13 +160,35 @@ class Video:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
         soup = BeautifulSoup(self.html_content, 'lxml')
-        # Find the <script> tag with type="application/ld+json"
-        script_tag = soup.find('script', {'type': 'application/ld+json'})
+        script_tags = soup.find_all('script', {'type': 'application/ld+json'})
 
-        if script_tag:
-            json_text = script_tag.string.strip()  # Get the content of the tag as a string
-            data = json.loads(json_text)
-            return data
+        combined_data = {}
+
+        for script in script_tags:
+                json_text = script.string.strip()
+                data = json.loads(json_text)
+                combined_data.update(data)
+        cleaned_dictionary = self.flatten_json(combined_data)
+        print(cleaned_dictionary)
+        return cleaned_dictionary
+
+    def flatten_json(self, nested_json, parent_key='', sep='_'):
+        """
+        Flatten a nested json dictionary. Duplicate keys will be overridden.
+
+        :param nested_json: The nested JSON dictionary to be flattened.
+        :param parent_key: The base key to use for the flattened keys.
+        :param sep: The separator between nested keys.
+        :return: A flattened dictionary.
+        """
+        items = []
+        for k, v in nested_json.items():
+            new_key = f"{parent_key}{sep}{k}" if parent_key else k
+            if isinstance(v, dict):
+                items.extend(self.flatten_json(v, new_key, sep=sep).items())
+            else:
+                items.append((new_key, v))
+        return dict(items)
 
     @cached_property
     def bitrate(self):
@@ -191,10 +218,29 @@ class Video:
         :return: str
         """
         if self.enable_html:
-            return self.html_json_data["ratingValue"]
+            try:
+                return self.html_json_data["aggregateRating_ratingValue"]
 
-        else:
-            return None
+            except KeyError:
+                raise NotAvailable("No rating available. This isn't an error!")
+
+    @cached_property
+    def likes(self):
+        """
+        Returns the video likes
+        :return: str
+        """
+        if self.enable_html:
+            return REGEX_VIDEO_LIKES.search(self.html_content).group(1)
+
+    @cached_property
+    def dislikes(self):
+        """
+        Returns the video dislikes
+        :return:
+        """
+        if self.enable_html:
+            return REGEX_VIDEO_DISLIKES.search(self.html_content).group(1)
 
     @cached_property
     def rating_count(self):
@@ -203,7 +249,7 @@ class Video:
         :return: str
         """
         if self.enable_html:
-            return self.html_json_data["ratingCount"]
+            return self.html_json_data["aggregateRating_ratingCount"]
 
         else:
             return None
@@ -215,7 +261,16 @@ class Video:
         :return: str
         """
         if self.enable_html:
-            return REGEX_VIDEO_UPLOADER.search(self.html_content).group(1)
+            match = REGEX_VIDEO_UPLOADER.search(self.html_content)
+            if match:
+                if match.group(1) is None or match.group(1) == "":
+                    match = REGEX_VIDEO_PORNSTAR.search(self.html_content)
+                    return match.group(1)
+
+                else:
+                    return match.group(1)
+
+
 
     def direct_download_link(self, quality, mode) -> str:
         """
@@ -258,10 +313,13 @@ class Video:
         for preference in quality_preferences[start_index:]:
             for resolution, link in available_links:
                 if resolution == preference:
-                    return link
+                    return f"https://eporner.com/{link}"
 
         # If no specific match is found, return None or the lowest available quality
-        return available_links[-1][1] if available_links else None
+        if len(available_links) <= 0:
+            raise NotAvailable("No available links for given quality / mode found. Not all videos support AV1")
+
+        return "https://eporner.com" + available_links[-1][1] if available_links else None
 
     @classmethod
     def fix_quality(cls, quality):
@@ -286,7 +344,7 @@ class Video:
         quality = self.fix_quality(quality)
 
         session = requests.Session()
-        response_redirect_url = session.get(f"https://www.eporner.com{self.direct_download_link(quality, mode)}",
+        response_redirect_url = session.get(self.direct_download_link(quality, mode),
                                             allow_redirects=False)
 
         if 'Location' in response_redirect_url.headers:
