@@ -13,3 +13,10 @@ e.g:
 
 Quality.BEST would translate to "best"
 <br>etc...
+
+# 1.3
+
+- Changed JSON methods
+- Fixed stuff
+- Written Unit Tests
+- /hdporn/ URls now also work
