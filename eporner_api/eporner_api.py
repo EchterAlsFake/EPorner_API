@@ -56,7 +56,6 @@ class Video:
         self.enable_html = enable_html_scraping
         self.html_content = None
         self.json_data = self.raw_json_data()
-        print(self.json_data)
         if self.enable_html:
             self.request_html_content()
             self.html_json_data = self.extract_json_from_html()
