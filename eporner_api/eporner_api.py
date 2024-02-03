@@ -169,7 +169,6 @@ class Video:
                 data = json.loads(json_text)
                 combined_data.update(data)
         cleaned_dictionary = self.flatten_json(combined_data)
-        print(cleaned_dictionary)
         return cleaned_dictionary
 
     def flatten_json(self, nested_json, parent_key='', sep='_'):
