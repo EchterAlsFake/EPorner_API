@@ -102,7 +102,7 @@ class Video:
             tag = str(tag).replace(" ", "")
             tags.append(tag)
 
-        return keywords
+        return tags
 
     @cached_property
     def title(self) -> str:
