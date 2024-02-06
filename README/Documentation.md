@@ -1,6 +1,6 @@
 # EPorner Documentation
 
-> - Version 1.2
+> - Version 1.3
 > - Author: Johannes Habel
 > - Copryight (C) 2024
 > - License: GPL 3
