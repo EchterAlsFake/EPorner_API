@@ -74,7 +74,7 @@ video.download_video(quality=Quality.BEST,
 > Webmasters
 > - 
 > - Video ID
-> - Keywords
+> - Tags
 > - Title
 > - Views
 > - Rate

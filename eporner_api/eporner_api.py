@@ -90,13 +90,13 @@ class Video:
         return parsed_data
 
     @cached_property
-    def keywords(self) -> list:
-        keywords = []
-        keywords_data = self.json_data["keywords"]
-        keywords_data_split = keywords_data.split(",")
-        for keyword in keywords_data_split:
-            keyword = str(keyword).replace(" ", "")
-            keywords.append(keyword)
+    def tags(self) -> list:
+        tags = []
+        tags_data = self.json_data["keywords"]
+        tags_data_split = tags_data.split(",")
+        for tag in tags_data_split:
+            tag = str(tag).replace(" ", "")
+            tags.append(tag)
 
         return keywords
 
@@ -121,7 +121,7 @@ class Video:
         return added
 
     @cached_property
-    def length_seconds(self) -> str:
+    def length(self) -> str:
         length_sec = self.json_data["length_sec"]
         return length_sec
 
