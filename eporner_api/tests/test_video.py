@@ -12,8 +12,8 @@ def test_video_id():
     assert isinstance(video.video_id, str) and len(video.video_id) > 0
 
 
-def test_keywords():
-    assert isinstance(video.keywords, list) and len(video.keywords) > 0
+def test_tags():
+    assert isinstance(video.tags, list) and len(video.tags) > 0
 
 
 def test_views():
@@ -29,7 +29,7 @@ def test_publish_date():
 
 
 def test_length_seconds():
-    assert isinstance(video.length_seconds, int) > 0
+    assert isinstance(video.length, int) > 0
 
 
 def test_length_minutes():
@@ -54,7 +54,6 @@ def test_source_video_url():
 
 def test_rating():
     assert isinstance(video.rating, str) and len(video.rating) > 0
-
 
 
 def test_rating_count():
