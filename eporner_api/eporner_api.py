@@ -309,7 +309,7 @@ class Video:
         for preference in quality_preferences[start_index:]:
             for resolution, link in available_links:
                 if resolution == preference:
-                    return f"https://eporner.com/{link}"
+                    return f"https://eporner.com{link}"
 
         # If no specific match is found, return None or the lowest available quality
         if len(available_links) <= 0:
@@ -364,6 +364,7 @@ class Video:
                             callback(downloaded_so_far, file_size)
 
                         else:
+                            print(f"Downloaded so far: {downloaded_so_far}, Total: {file_size}")
                             progress_bar.text_progress_bar(downloaded=downloaded_so_far, total=file_size)
 
                 if not callback:
@@ -386,7 +387,6 @@ class Client:
 
         content = response.content.decode("utf-8")
         json_data = json.loads(content)
-
         for video_ in json_data.get("videos", []):  # Don't know why this works lmao
-            id_ = video_["id"]
+            id_ = video_["url"]
             yield Video(id_, enable_html_scraping)
