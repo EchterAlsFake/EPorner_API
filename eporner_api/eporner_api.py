@@ -268,8 +268,6 @@ class Video:
                 else:
                     return match.group(1)
 
-
-
     def direct_download_link(self, quality, mode) -> str:
         """
         Returns the direct download URL for a given quality
@@ -335,7 +333,7 @@ class Video:
             elif str(quality) == "worst":
                 return Quality.WORST
 
-    def download_video(self, quality, output_path, callback=None, mode=Encoding.mp4_h264, no_title=False):
+    def download_video(self, quality, output_path, callback=None, mode=Encoding.mp4_h264):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
@@ -350,24 +348,7 @@ class Video:
             response_download = session.get(redirected_url, stream=True)
             file_size = int(response_download.headers.get('content-length', 0))
 
-            if no_title is False:
-                title = self.title
-
-            if Encoding.av1:
-                extension = ".av1"
-
-            elif Encoding.mp4_h264:
-                extension = ".mp4"
-
-            else:
-                extension = ".mp4"  # Should never happen
-
-            if no_title is False:
-                final_path = output_path + title + extension
-
-            else:
-                final_path = output_path  # This is needed to integrate the download process into the Porn Fetch project
-
+            final_path = output_path
             if callback is None:
                 progress_bar = Callback()
 
