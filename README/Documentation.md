@@ -1,6 +1,6 @@
 # EPorner Documentation
 
-> - Version 1.3
+> - Version 1.4
 > - Author: Johannes Habel
 > - Copryight (C) 2024
 > - License: GPL 3
@@ -14,7 +14,7 @@ The ToS of Eporner.com clearly say, that using scrapers / bots isn't allowed.
 <br> The function parameter is called `enable_html_scraping`. This parameter is by default
 <br> set to `False`. However, you can set it to `True` to enable all features.
 
-If you are using this you may face legal actions, so it's at your own risk!
+If you are using this, you may face legal actions, so it's at your own risk!
 
 # Table of Contents
 

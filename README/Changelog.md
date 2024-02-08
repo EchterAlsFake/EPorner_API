@@ -20,3 +20,9 @@ Quality.BEST would translate to "best"
 - Fixed stuff
 - Written Unit Tests
 - /hdporn/ URls now also work
+
+# 1.4
+
+- renamed attributes
+- fixed searching
+- fixed video downloading
