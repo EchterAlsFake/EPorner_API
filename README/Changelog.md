@@ -26,3 +26,9 @@ Quality.BEST would translate to "best"
 - renamed attributes
 - fixed searching
 - fixed video downloading
+
+# 1.5
+
+- fixed the thumbnails
+- removed print statement
+- you can now search by category

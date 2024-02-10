@@ -41,7 +41,7 @@ def test_embed_url():
 
 
 def test_thumbnails():
-    assert isinstance(video.thumbnails, list) and len(video.thumbnails) > 0
+    assert isinstance(video.thumbnail, str) and len(video.thumbnail) > 0
 
 
 def test_bitrate():

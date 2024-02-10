@@ -1,13 +1,13 @@
 # EPorner Documentation
 
-> - Version 1.4
+> - Version 1.5
 > - Author: Johannes Habel
 > - Copryight (C) 2024
 > - License: GPL 3
 > - Dependencies: requests, lxml, bs4
 
 # Important Notice
-The ToS of Eporner.com clearly say, that using scrapers / bots isn't allowed.
+The ToS of Eporner.com clearly say that using scrapers / bots isn't allowed.
 <br>This API uses primarily the official Webmasters API which is in compliance to the ToS.
 
 <br>However, there are more features, which can be enabled using the function parameters.
@@ -24,6 +24,7 @@ If you are using this, you may face legal actions, so it's at your own risk!
     - [Download a Video](#downloading-a-video)
     - [Custom Callback](#custom-callback)
 - [Searching for Videos](#searching-for-videos)
+- [Videos by Category](#videos-by-category)
 - [Locals](#locals)
     - [Quality](#quality)
     - [Encoding](#encoding)
@@ -32,6 +33,7 @@ If you are using this, you may face legal actions, so it's at your own risk!
     - [Order](#order)
     - [Gay](#gay)
     - [Low Quality](#lowquality)
+    - [Category](#category)
 
 # Importing the API
 
@@ -82,7 +84,6 @@ video.download_video(quality=Quality.BEST,
 > - Length (Seconds)
 > - Length (Minutes)
 > - Embed URL (to embed the video in a website)
-> - Thumbnails
 >
 > HTML Content
 > -
@@ -90,6 +91,7 @@ video.download_video(quality=Quality.BEST,
 > - Source video URL (you probably never need this)
 > - Rating
 > - Rating Count
+> - Thumbnail
 
 ### Functions
 - direct_download_link() # Returns the direct download URL
@@ -99,7 +101,7 @@ video.download_video(quality=Quality.BEST,
 
 > Please See [Locals](#locals)
 
-You can download a video by using `video.downlod()`
+You can download a video by using `video.downlod_video()`
 
 > Arguments:
 > 
@@ -145,7 +147,26 @@ for video in videos:
 
 Returns a [Video](#video-object) Object (as a Generator)
 
+# Videos by Category
 
+You can also get Videos by a Category
+
+```python
+from eporner_api.eporner_api import Client, Category
+
+videos = Client().get_videos_by_category(category=Category.ASIAN) # or something else,
+
+# INFO: You can also pass the category as a string like it would be in the url.
+
+for video in videos:
+  print(video.title)
+
+```
+
+#### Arguments:
+
+- pages: Over how many pages to iterate. One page contains 63 videos
+- enable_html_scraping: If the returned Video objects should have html scraping enabled
 
 
 # Locals
@@ -236,5 +257,17 @@ gay = Gay.exclude_gay_content
 from eporner_api.modules.sorting import LowQuality
 
 quality_sorting = LowQuality.exclude_low_quality_content
+# etc...
+```
+
+# Category
+
+All categories are in the Category class.
+```python
+
+from eporner_api.modules.locals import Category
+Category.AMATEUR
+Category.ASMR 
+
 # etc...
 ```

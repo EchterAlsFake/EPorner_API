@@ -140,9 +140,12 @@ class Video:
         return embed
 
     @cached_property
-    def thumbnails(self):
-        thumbs = self.json_data["thumbs"]
-        return thumbs
+    def thumbnail(self):
+        if self.enable_html:
+            return REGEX_VIDEO_THUMBNAILS.search(self.html_content).group(1)
+
+        else:
+            return None
 
     """
     The following methods are using HTML scraping. This is against the ToS from EPorner.com!
@@ -364,7 +367,6 @@ class Video:
                             callback(downloaded_so_far, file_size)
 
                         else:
-                            print(f"Downloaded so far: {downloaded_so_far}, Total: {file_size}")
                             progress_bar.text_progress_bar(downloaded=downloaded_so_far, total=file_size)
 
                 if not callback:
@@ -390,3 +392,19 @@ class Client:
         for video_ in json_data.get("videos", []):  # Don't know why this works lmao
             id_ = video_["url"]
             yield Video(id_, enable_html_scraping)
+
+    @classmethod
+    def get_videos_by_category(cls, category: Category, pages: int = 2, enable_html_scraping=False):
+
+        urls = []
+
+        for page in range(pages):
+            response = requests.get(f"{ROOT_URL}cat/{category}/{page}").content.decode("utf-8")
+            extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
+            for url in extraction:
+                url = f"https://www.eporner.com{url}"
+                url = url.replace("EPTHBN/", "")
+                urls.append(url)
+
+        for url in urls:
+            yield Video(url, enable_html_scraping=enable_html_scraping)
