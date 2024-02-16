@@ -32,3 +32,7 @@ Quality.BEST would translate to "best"
 - fixed the thumbnails
 - removed print statement
 - you can now search by category
+
+# 1.6
+- added the Pornstar object
+- get videos by pornstar and their information

@@ -1,3 +1,5 @@
+import re
+
 import requests
 import json
 import os
@@ -18,6 +20,7 @@ except (ModuleNotFoundError, ImportError):
 
 from functools import cached_property
 from bs4 import BeautifulSoup
+from typing import Generator
 
 """
 Copyright (c) 2024 Johannes Habel
@@ -373,6 +376,109 @@ class Video:
                     del progress_bar
 
 
+class Pornstar:
+    def __init__(self, url, enable_html_scraping=False):
+        self.url = url
+        self.enable_html_scraping = enable_html_scraping
+        self.html_content = requests.get(self.url).text
+
+    def videos(self, pages: int = 2) -> Generator:
+        urls = []
+        for page in range(pages):
+            response = requests.get(self.url).content.decode("utf-8")
+            extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
+            for url in extraction:
+                url = f"https://www.eporner.com{url}"
+                url = url.replace("EPTHBN/", "")
+                urls.append(url)
+
+        for url in urls:
+            yield Video(url, enable_html_scraping=self.enable_html_scraping)
+
+    @cached_property
+    def name(self):
+        return REGEX_PORNSTAR_NAME.search(self.html_content).group(1)
+
+    @cached_property
+    def subscribers(self):
+        return REGEX_PORNSTAR_SUBSCRIBERS.search(self.html_content).group(1).replace("(", "").replace(")", "")
+
+    @cached_property
+    def picture(self):
+        REGEX_PORNSTAR_PICTURE = re.compile(fr'<img src="(.*?)" alt="{self.name}" >')
+        return REGEX_PORNSTAR_PICTURE.search(self.html_content).group(1)
+
+    @cached_property
+    def photos_amount(self):
+        return REGEX_PORNSTAR_PHOTOS_AMOUNT.search(self.html_content).group(1)
+
+    @cached_property
+    def video_amount(self):
+        return REGEX_PORNSTAR_VIDEO_AMOUNT.search(self.html_content).group(1)
+
+    @cached_property
+    def pornstar_rank(self):
+        return REGEX_PORNSTAR_RANK.search(self.html_content).group(1)
+
+    @cached_property
+    def profile_views(self):
+        return REGEX_PORNSTAR_PROFILE_VIEWS.search(self.html_content).group(1)
+
+    @cached_property
+    def video_views(self):
+        return REGEX_PORNSTAR_VIDEO_VIEWS.search(self.html_content).group(1)
+
+    @cached_property
+    def photo_views(self):
+        return REGEX_PORNSTAR_PHOTO_VIEWS.search(self.html_content).group(1)
+
+    @cached_property
+    def country(self):
+        return REGEX_PORNSTAR_COUNTRY.search(self.html_content).group(1)
+
+    @cached_property
+    def age(self):
+        return REGEX_PORNSTAR_AGE.search(self.html_content).group(1)
+
+    @cached_property
+    def ethnicity(self):
+        return REGEX_PORNSTAR_ETHNICITY.search(self.html_content).group(1)
+
+    @cached_property
+    def eye_color(self):
+        return REGEX_PORNSTAR_EYE_COLOR.search(self.html_content).group(1)
+
+    @cached_property
+    def hair_color(self):
+        return REGEX_PORNSTAR_HAIR_COLOR.search(self.html_content).group(1)
+
+    @cached_property
+    def height(self):
+        return REGEX_PORNSTAR_HEIGHT.search(self.html_content).group(1)
+
+    @cached_property
+    def weight(self):
+        return REGEX_PORNSTAR_WEIGHT.search(self.html_content).group(1)
+
+    @cached_property
+    def cup(self):
+        return REGEX_PORNSTAR_CUP.search(self.html_content).group(1)
+
+    @cached_property
+    def measurements(self):
+        return REGEX_PORNSTAR_MEASUREMENTS.search(self.html_content).group(1)
+
+    @cached_property
+    def aliases(self):
+        aliases = REGEX_PORNSTAR_ALIASES.search(self.html_content).group(1)
+        aliases_filtered = re.findall("<li>(.*?)</li>", aliases)
+        return aliases_filtered
+
+    @cached_property
+    def biography(self):
+        return REGEX_PORNSTAR_BIOGRAPHY.search(self.html_content).group(1)
+
+
 class Client:
 
     @classmethod
@@ -395,7 +501,6 @@ class Client:
 
     @classmethod
     def get_videos_by_category(cls, category: Category, pages: int = 2, enable_html_scraping=False):
-
         urls = []
 
         for page in range(pages):
@@ -408,3 +513,7 @@ class Client:
 
         for url in urls:
             yield Video(url, enable_html_scraping=enable_html_scraping)
+
+    @classmethod
+    def get_pornstar(cls, url, enable_html_scraping=True):
+        return Pornstar(url, enable_html_scraping)

@@ -1,6 +1,6 @@
 # EPorner Documentation
 
-> - Version 1.5
+> - Version 1.6
 > - Author: Johannes Habel
 > - Copryight (C) 2024
 > - License: GPL 3
@@ -23,6 +23,7 @@ If you are using this, you may face legal actions, so it's at your own risk!
     - [Video Information](#video-information)
     - [Download a Video](#downloading-a-video)
     - [Custom Callback](#custom-callback)
+  [The Pornstar Object]
 - [Searching for Videos](#searching-for-videos)
 - [Videos by Category](#videos-by-category)
 - [Locals](#locals)
@@ -71,7 +72,7 @@ video.download_video(quality=Quality.BEST,
                     output_path="./", mode=Encoding.mp4_h264)
 
 ```
-## Video Information
+### Video Information
 
 > Webmasters
 > - 
@@ -92,6 +93,7 @@ video.download_video(quality=Quality.BEST,
 > - Rating
 > - Rating Count
 > - Thumbnail
+> - Pornstars (their videos and some information)
 
 ### Functions
 - direct_download_link() # Returns the direct download URL
@@ -119,6 +121,23 @@ Your function needs to take the arguments `pos` and `total`
 - pos: The current progress
 - total: The total filesize
 
+## The Pornstar Object
+
+It's as simple as doing:
+
+```python
+from eporner_api.eporner_api import Client
+client = Client()
+pornstar = client.get_pornstar("https://www.eporner.com/pornstar/riley-reid/", enable_html_scraping=True)
+videos = pornstar.videos(pages=2)
+
+# Now you can iterate through videos
+
+for video in videos:
+    print(video.title) # or download them, etc...
+```
+
+> The Pornstar Object contains all information from the EPorner Pornstar page
 
 ## Searching for Videos
 
