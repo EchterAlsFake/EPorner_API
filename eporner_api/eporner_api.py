@@ -21,6 +21,7 @@ except (ModuleNotFoundError, ImportError):
 from functools import cached_property
 from bs4 import BeautifulSoup
 from typing import Generator
+from base_api.base import Core
 
 """
 Copyright (c) 2024 Johannes Habel
@@ -91,8 +92,7 @@ class Video:
         :return:
         """
 
-        data = (requests.get(f"{ROOT_URL}{API_VIDEO_ID}?id={self.video_id}&thumbsize=medium&format=json")
-                .content.decode("utf-8"))
+        data = Core().get_content(f"{ROOT_URL}{API_VIDEO_ID}?id={self.video_id}&thumbsize=medium&format=json").decode("utf-8")
         parsed_data = json.loads(data)
         return parsed_data
 
@@ -158,7 +158,7 @@ class Video:
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        self.html_content = requests.get(self.url).content.decode("utf-8")
+        self.html_content = Core().get_content(self.url).decode("utf-8")
 
     def extract_json_from_html(self):
         if not self.enable_html:
@@ -284,7 +284,7 @@ class Video:
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        quality = self.fix_quality(quality)
+        quality = Core().fix_quality(quality)
         soup = BeautifulSoup(self.html_content, 'html.parser')
         available_links = []
 
@@ -323,28 +323,11 @@ class Video:
 
         return "https://eporner.com" + available_links[-1][1] if available_links else None
 
-    @classmethod
-    def fix_quality(cls, quality):
-
-        if isinstance(quality, Quality):
-            return quality
-
-        else:
-            if str(quality) == "best":
-                return Quality.BEST
-
-            elif str(quality) == "half":
-                return Quality.HALF
-
-            elif str(quality) == "worst":
-                return Quality.WORST
-
     def download_video(self, quality, output_path, callback=None, mode=Encoding.mp4_h264):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        quality = self.fix_quality(quality)
-
+        quality = Core().fix_quality(quality)
         session = requests.Session()
         response_redirect_url = session.get(self.direct_download_link(quality, mode),
                                             allow_redirects=False)
@@ -385,7 +368,7 @@ class Pornstar:
     def videos(self, pages: int = 2) -> Generator:
         urls = []
         for page in range(pages):
-            response = requests.get(self.url).content.decode("utf-8")
+            response = Core().get_content(self.url).decode("utf-8")
             extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
             for url in extraction:
                 url = f"https://www.eporner.com{url}"
@@ -489,12 +472,11 @@ class Client:
     def search_videos(cls, query: str, sorting_gay: Gay, sorting_order: Order, sorting_low_quality: LowQuality,
                       page: int, per_page: int, enable_html_scraping=False):
 
-        response = requests.get(f"{ROOT_URL}{API_SEARCH}?query={query}&per_page={per_page}&%page={page}"
+        response = Core().get_content(f"{ROOT_URL}{API_SEARCH}?query={query}&per_page={per_page}&%page={page}"
                                 f"&thumbsize=medium&order={sorting_order}&gay={sorting_gay}&lq="
-                                f"{sorting_low_quality}&format=json")
+                                f"{sorting_low_quality}&format=json").decode("utf-8")
 
-        content = response.content.decode("utf-8")
-        json_data = json.loads(content)
+        json_data = json.loads(response)
         for video_ in json_data.get("videos", []):  # Don't know why this works lmao
             id_ = video_["url"]
             yield Video(id_, enable_html_scraping)
@@ -504,7 +486,7 @@ class Client:
         urls = []
 
         for page in range(pages):
-            response = requests.get(f"{ROOT_URL}cat/{category}/{page}").content.decode("utf-8")
+            response = Core().get_content(f"{ROOT_URL}cat/{category}/{page}").decode("utf-8")
             extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
             for url in extraction:
                 url = f"https://www.eporner.com{url}"

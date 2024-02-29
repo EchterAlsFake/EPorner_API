@@ -5,7 +5,7 @@ setup(
     version="1.6",
     packages=find_packages(),
     install_requires=[
-        "requests", "bs4", "lxml"
+        "requests", "bs4", "lxml", "eaf_base_api"
     ],
     entry_points={
         'console_scripts': [
@@ -15,7 +15,7 @@ setup(
     author="Johannes Habel",
     author_email="EchterAlsFake@proton.me",
     description="A Python API for the Porn Site Eporner.com",
-    long_description=open('README.md').read(),
+    long_description=open('/home/asuna/PycharmProjects/EPorner_API/README.md').read(),
     long_description_content_type='text/markdown',
     license="LGPLv3",
     url="https://github.com/EchterAlsFake/EPorner_API",
