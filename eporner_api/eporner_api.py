@@ -1,5 +1,3 @@
-import re
-
 import requests
 import json
 import os
@@ -22,6 +20,7 @@ from functools import cached_property
 from bs4 import BeautifulSoup
 from typing import Generator
 from base_api.base import Core
+from base_api.modules.quality import Quality
 
 """
 Copyright (c) 2024 Johannes Habel

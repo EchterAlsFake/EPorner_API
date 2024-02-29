@@ -209,7 +209,7 @@ The Quality object has three types:
 
 
 ```python
-from eporner_api.modules.locals import Quality
+from base_api.modules.quality import Quality
 
 quality = Quality.BEST
 quality = Quality.HALF
