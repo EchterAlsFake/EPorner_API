@@ -322,7 +322,7 @@ class Video:
 
         return "https://eporner.com" + available_links[-1][1] if available_links else None
 
-    def download_video(self, quality, path, callback=None, mode=Encoding.mp4_h264):
+    def download(self, quality, path, callback=None, mode=Encoding.mp4_h264):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 

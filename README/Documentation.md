@@ -2,7 +2,7 @@
 
 > - Version 1.6
 > - Author: Johannes Habel
-> - Copryight (C) 2024
+> - Copyright (C) 2024
 > - License: LGPLv3
 > - Dependencies: requests, lxml, bs4, eaf_base_api
 
@@ -10,7 +10,7 @@
 The ToS of Eporner.com clearly say that using scrapers / bots isn't allowed.
 <br>This API uses primarily the official Webmasters API which is in compliance to the ToS.
 
-<br>However, there are more features, which can be enabled using the function parameters.
+<br>However, there are more features which can be enabled using the function parameters.
 <br> The function parameter is called `enable_html_scraping`. This parameter is by default
 <br> set to `False`. However, you can set it to `True` to enable all features.
 
@@ -68,7 +68,7 @@ print(video.length_seconds)
 
 # Downloading a Video (HTML Scraping needs to be enabled!)
 
-video.download_video(quality=Quality.BEST,
+video.download(quality=Quality.BEST,
                     path="./", mode=Encoding.mp4_h264)
 
 ```
@@ -97,7 +97,7 @@ video.download_video(quality=Quality.BEST,
 
 ### Functions
 - direct_download_link() # Returns the direct download URL
-- download_video()
+- download()
 
 ### Downloading a Video
 
