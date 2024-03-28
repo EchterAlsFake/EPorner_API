@@ -3,8 +3,8 @@
 > - Version 1.6
 > - Author: Johannes Habel
 > - Copryight (C) 2024
-> - License: GPL 3
-> - Dependencies: requests, lxml, bs4
+> - License: LGPLv3
+> - Dependencies: requests, lxml, bs4, eaf_base_api
 
 # Important Notice
 The ToS of Eporner.com clearly say that using scrapers / bots isn't allowed.
@@ -23,7 +23,7 @@ If you are using this, you may face legal actions, so it's at your own risk!
     - [Video Information](#video-information)
     - [Download a Video](#downloading-a-video)
     - [Custom Callback](#custom-callback)
-  [The Pornstar Object]
+  [The Pornstar Object](#the-pornstar-object)
 - [Searching for Videos](#searching-for-videos)
 - [Videos by Category](#videos-by-category)
 - [Locals](#locals)
@@ -113,7 +113,7 @@ You can download a video by using `video.downlod_video()`
 
 #### Custom Callback
 
-If you want to use a custom callback function you can do so, by specifying your function
+If you want to use a custom callback function, you can do so, by specifying your function
 in the `callback` argument.
 
 Your function needs to take the arguments `pos` and `total`
