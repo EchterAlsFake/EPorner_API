@@ -322,7 +322,7 @@ class Video:
 
         return "https://eporner.com" + available_links[-1][1] if available_links else None
 
-    def download_video(self, quality, output_path, callback=None, mode=Encoding.mp4_h264):
+    def download_video(self, quality, path, callback=None, mode=Encoding.mp4_h264):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
@@ -336,7 +336,7 @@ class Video:
             response_download = session.get(redirected_url, stream=True)
             file_size = int(response_download.headers.get('content-length', 0))
 
-            final_path = output_path
+            final_path = path
             if callback is None:
                 progress_bar = Callback()
 

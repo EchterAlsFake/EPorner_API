@@ -69,7 +69,7 @@ print(video.length_seconds)
 # Downloading a Video (HTML Scraping needs to be enabled!)
 
 video.download_video(quality=Quality.BEST,
-                    output_path="./", mode=Encoding.mp4_h264)
+                    path="./", mode=Encoding.mp4_h264)
 
 ```
 ### Video Information
