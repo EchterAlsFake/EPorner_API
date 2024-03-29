@@ -1,6 +1,5 @@
 import requests
 import json
-import os
 
 try:
     from .modules.consts import *
@@ -21,6 +20,8 @@ from bs4 import BeautifulSoup
 from typing import Generator
 from base_api.base import Core
 from base_api.modules.quality import Quality
+from base_api.modules.download import legacy_download
+
 
 """
 Copyright (c) 2024 Johannes Habel
@@ -333,29 +334,7 @@ class Video:
 
         if 'Location' in response_redirect_url.headers:
             redirected_url = response_redirect_url.headers['Location']
-            response_download = session.get(redirected_url, stream=True)
-            file_size = int(response_download.headers.get('content-length', 0))
-
-            final_path = path
-            if callback is None:
-                progress_bar = Callback()
-
-            downloaded_so_far = 0
-
-            if not os.path.exists(final_path):
-                with open(final_path, 'wb') as file:
-                    for chunk in response_download.iter_content(chunk_size=1024):
-                        file.write(chunk)
-                        downloaded_so_far += len(chunk)
-
-                        if callback:
-                            callback(downloaded_so_far, file_size)
-
-                        else:
-                            progress_bar.text_progress_bar(downloaded=downloaded_so_far, total=file_size)
-
-                if not callback:
-                    del progress_bar
+            legacy_download(stream=True, url=redirected_url, callback=callback, path=path)
 
 
 class Pornstar:
