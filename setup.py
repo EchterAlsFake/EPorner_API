@@ -8,7 +8,7 @@ setup(
         "requests", "bs4", "lxml", "eaf_base_api"
     ],
     entry_points={
-        'console_scripts': [
+        'console_scripts': ['eporner_api=eporner_api.eporner_api:main'
             # If you want to create any executable scripts
         ],
     },
