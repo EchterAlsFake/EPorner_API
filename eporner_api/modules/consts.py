@@ -19,7 +19,7 @@ REGEX_VIDEO_LIKES = re.compile(r'<div class="likeup" onclick="EP\.video\.postVot
 REGEX_VIDEO_DISLIKES = re.compile(r'<div class="likedown" onclick="EP\.video\.postVote\(\d+, [01], \'video\'\);"><i>\d+</i><small>(\d+)</small></div>')
 REGEX_VIDEO_THUMBNAILS = re.compile(r'poster="([^"]+\.jpg)"')
 REGEX_SCRAPE_VIDEO_URLS = re.compile(r'class="mbcontent">[^<]*<a href="([^"]+)"')
-
+REGEX_VIDEO_DISABLED = re.compile('<div id="(.*?)">')
 REGEX_PORNSTAR_SUBSCRIBERS = re.compile(r'<small>(.*?)</small>')
 REGEX_PORNSTAR_NAME = re.compile(r'<h1 >(.*?)</h1>')
 REGEX_PORNSTAR_VIDEO_AMOUNT = re.compile(r'Videos<span>(.*?)</span></a>')

@@ -63,6 +63,11 @@ class Video:
         self.json_data = self.raw_json_data()
         if self.enable_html:
             self.request_html_content()
+            is_removed = REGEX_VIDEO_DISABLED.findall(self.html_content)
+            for _ in is_removed:
+                if _ == "deletedfile":
+                    raise VideoDisabled("Video has been removed because of a Copyright claim")
+
             self.html_json_data = self.extract_json_from_html()
 
     @cached_property
@@ -510,3 +515,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+client = Client()
+video = client.get_video("https://www.eporner.com/video-sAEXdBNFZ8C/ipx852-momonogi-kana-sr22-ep/", enable_html_scraping=True)
