@@ -565,6 +565,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-client = Client()
-video = client.get_video("https://www.eporner.com/video-Ip1yJlshUu4/mia-khalifa-rachel-rose-tiffany-valentine-mia-s-video-game-night-emotionless-tsundere/", enable_html_scraping=True)
