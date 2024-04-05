@@ -16,3 +16,8 @@ class NotAvailable(Exception):
 class VideoDisabled(Exception):
     def __init__(self, msg):
         self.msg = msg
+
+
+class InvalidVideo(Exception):
+    def __init__(self, msg):
+        self.msg = msg
