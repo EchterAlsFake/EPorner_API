@@ -224,8 +224,8 @@ class Video:
                 data = json.loads(json_text)
 
             except json.decoder.JSONDecodeError:
-                raise InvalidVideo("Sorry, the video seems to have invalid JSON data. This is an issue which lies a bit deeper."
-                                   "I hope I will be able to fix this error someday")
+                raise InvalidVideo("""
+JSONDecodeError: I need your help to fix this error. Please report the URL you've used on GitHub. Thanks :)""")
 
             combined_data.update(data)
 
