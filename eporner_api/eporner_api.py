@@ -1,3 +1,5 @@
+import html
+
 import requests
 import json
 import argparse
@@ -63,6 +65,11 @@ class Video:
         self.json_data = self.raw_json_data()
         if self.enable_html:
             self.request_html_content()
+            is_removed = REGEX_VIDEO_DISABLED.findall(self.html_content)
+            for _ in is_removed:
+                if _ == "deletedfile":
+                    raise VideoDisabled("Video has been removed because of a Copyright claim")
+
             self.html_json_data = self.extract_json_from_html()
 
     @cached_property
@@ -159,7 +166,48 @@ class Video:
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        self.html_content = Core().get_content(self.url).decode("utf-8")
+        self.html_content = html.unescape(Core().get_content(self.url).decode("utf-8"))
+
+    @classmethod
+    def highlight_error_position(cls, json_string, char_position):
+        lines = json_string.splitlines()
+
+        # Calculate line and column number from char_position
+        current_char_count = 0
+        for line_number, line in enumerate(lines, start=1):
+            next_char_count = current_char_count + len(line) + 1 # +1 for the newline character
+            if next_char_count > char_position:
+                column_number = char_position - current_char_count
+                print(f"Error at Line {line_number}, Column {column_number}:")
+                print(line)
+                print(" " * (column_number - 1) + "^")
+                break
+            current_char_count = next_char_count
+
+    @classmethod
+    def fix_json_string(cls, json_string):
+        in_quotes = False
+        result = []
+
+        for char in json_string:
+            if char == '"' and not in_quotes:
+                # Entering a quoted string
+                in_quotes = True
+            elif char == '"' and in_quotes:
+                # Exiting a quoted string
+                in_quotes = False
+
+            if char == ':' and in_quotes:
+                # Skip this colon since it's inside quotes
+                continue
+            elif char in ['\n', '\r'] and in_quotes:
+                # Escape new line characters inside quoted strings
+                result.append(r'\\n')
+                continue
+            else:
+                result.append(char)
+
+        return ''.join(result)
 
     def extract_json_from_html(self):
         if not self.enable_html:
@@ -171,9 +219,16 @@ class Video:
         combined_data = {}
 
         for script in script_tags:
-                json_text = script.string.strip()
+            json_text = script.string.strip()
+            try:
                 data = json.loads(json_text)
-                combined_data.update(data)
+
+            except json.decoder.JSONDecodeError:
+                raise InvalidVideo("""
+JSONDecodeError: I need your help to fix this error. Please report the URL you've used on GitHub. Thanks :)""")
+
+            combined_data.update(data)
+
         cleaned_dictionary = self.flatten_json(combined_data)
         return cleaned_dictionary
 
@@ -482,17 +537,23 @@ class Client:
 
 def main():
     parser = argparse.ArgumentParser(description="API Command Line Interface")
-    parser.add_argument("--download", type=str, help="URL to download from")
-    parser.add_argument("--quality", type=str, help="The video quality (best,half,worst)")
-    parser.add_argument("--file", type=str, help="(Optional) Specify a file with URLs (separated with new lines)")
-    parser.add_argument("--downloader", type=str, help="The downloader for the segments (threaded,ffmpeg,default)")
-    parser.add_argument("--output", type=str, help="The output path (with filename)")
+    parser.add_argument("--download", metavar="URL (str)", type=str, help="URL to download from")
+    parser.add_argument("--quality", metavar="best,half,worst", type=str, help="The video quality (best,half,worst)",
+                        required=True)
+    parser.add_argument("--file", metavar="Source to .txt file", type=str,
+                        help="(Optional) Specify a file with URLs (separated with new lines)")
+    parser.add_argument("--output", metavar="Output directory", type=str, help="The output path (with filename)",
+                        required=True)
+    parser.add_argument("--use-title", metavar="True,False", type=bool,
+                        help="Whether to apply video title automatically to output path or not", required=True)
+
     args = parser.parse_args()
 
     if args.download:
         client = Client()
         video = client.get_video(args.download)
-        video.download(quality=args.quality, path=args.output)
+        path = Core().return_path(args=args, video=video)
+        video.download(quality=args.quality, path=path)
 
     if args.file:
         videos = []
@@ -505,7 +566,8 @@ def main():
             videos.append(client.get_video(url))
 
         for video in videos:
-            video.download(quality=args.quality, path=args.output)
+            path = Core().return_path(args=args, video=video)
+            video.download(quality=args.quality, path=path)
 
 
 if __name__ == "__main__":
