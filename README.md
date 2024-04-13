@@ -11,12 +11,13 @@
 EPorner API is an API for EPorner, which allows you to fetch information from videos using the official V2 API.
 
 # Disclaimer
-> Some modules of this API are in violence to the ToS from Eporner.com
+> Some modules of this API are in violation of the ToS of Eporner.com
  
 > See Documentation for details about this!
 
-Copyright Information: I have no intention of stealing copyright protected content or slowing down
-a website. Contact me at my E-Mail, and I'll take this Repository immediately offline.
+> [!IMPORTANT]
+> Copyright Information: I have no intention of stealing copyright protected content or slowing down
+> a website. Contact me at my E-Mail, and I'll take this Repository immediately offline. (EchterAlsFake@proton.me)
 
 # Features
 > Webmasters API
@@ -67,7 +68,7 @@ for video in videos:
 ```
 
 > [!NOTE]
-> XVideos API can also be used from the command line. Do: xvideos_api -h to see the options
+> EPorner API can also be used from the command line. Do: eporner_api -h to see the options
 
 # Changelog
 See [Changelog](https://github.com/EchterAlsFake/EPorner_API/blob/master/README/Changelog.md) for more details.
@@ -84,5 +85,4 @@ Licensed under the LGPLv3 License
 Copyright (C) 2023–2024 Johannes Habel
 
 # Support
-
 Leave a star on the repository. That's enough :) 
