@@ -36,3 +36,8 @@ Quality.BEST would translate to "best"
 # 1.6
 - added the Pornstar object
 - get videos by pornstar and their information
+
+# 1.7
+- switched to eaf base api
+- added command line usage
+- fixed stuff I don't remember lol
