@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="Eporner_API",
-    version="1.6.1",
+    version="1.7",
     packages=find_packages(),
     install_requires=[
         "requests", "bs4", "lxml", "eaf_base_api"
