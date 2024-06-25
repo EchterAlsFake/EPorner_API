@@ -549,7 +549,7 @@ def main():
 
     if args.download:
         client = Client()
-        video = client.get_video(args.download)
+        video = client.get_video(args.download, enable_html_scraping=True)
         path = Core().return_path(args=args, video=video)
         video.download(quality=args.quality, path=path)
 
@@ -561,7 +561,7 @@ def main():
             content = file.read().splitlines()
 
         for url in content:
-            videos.append(client.get_video(url))
+            videos.append(client.get_video(url, enable_html_scraping=True))
 
         for video in videos:
             path = Core().return_path(args=args, video=video)
