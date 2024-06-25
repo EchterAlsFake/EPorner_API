@@ -516,19 +516,17 @@ class Client:
             yield Video(id_, enable_html_scraping)
 
     @classmethod
-    def get_videos_by_category(cls, category: Category, pages: int = 2, enable_html_scraping=False):
-        urls = []
+    def get_videos_by_category(cls, category: Category, enable_html_scraping=False):
+        page = 0
 
-        for page in range(pages):
+        for page in range(100):
+            page += 1
             response = Core().get_content(f"{ROOT_URL}cat/{category}/{page}").decode("utf-8")
             extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
             for url in extraction:
                 url = f"https://www.eporner.com{url}"
                 url = url.replace("EPTHBN/", "")
-                urls.append(url)
-
-        for url in urls:
-            yield Video(url, enable_html_scraping=enable_html_scraping)
+                yield Video(url, enable_html_scraping=enable_html_scraping)
 
     @classmethod
     def get_pornstar(cls, url, enable_html_scraping=True):
