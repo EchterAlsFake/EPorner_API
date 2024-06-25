@@ -517,10 +517,7 @@ class Client:
 
     @classmethod
     def get_videos_by_category(cls, category: Category, enable_html_scraping=False):
-        page = 0
-
         for page in range(100):
-            page += 1
             response = Core().get_content(f"{ROOT_URL}cat/{category}/{page}").decode("utf-8")
             extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
             for url in extraction:
