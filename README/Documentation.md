@@ -39,9 +39,7 @@ If you are using this, you may face legal actions, so it's at your own risk!
 # Importing the API
 
 ```python
-from eporner_api.eporner_api import Client, Quality
-from eporner_api.modules.errors import *  # These are the exceptions
-from eporner_api.modules.sorting import *  # These are sorting used for searching
+from eporner_api import Client, Quality, errors, sorting
 ```
 
 
@@ -50,7 +48,7 @@ from eporner_api.modules.sorting import *  # These are sorting used for searchin
 The video object has the following attributes:
 
 ```python
-from eporner_api.eporner_api import Client, Quality, Encoding
+from eporner_api import Client, Quality, Encoding
 
 client = Client()
 video = client.get_video("<video_url>", enable_html_scraping=False)
@@ -125,7 +123,7 @@ Your function needs to take the arguments `pos` and `total`
 It's as simple as doing:
 
 ```python
-from eporner_api.eporner_api import Client
+from eporner_api import Client
 client = Client()
 pornstar = client.get_pornstar("https://www.eporner.com/pornstar/riley-reid/", enable_html_scraping=True)
 videos = pornstar.videos(pages=2)
@@ -143,7 +141,7 @@ for video in videos:
 You can search videos using 
 
 ```python
-from eporner_api.eporner_api import Client
+from eporner_api import Client
 
 client = Client()
 videos = client.search_videos(query, etc...)
@@ -170,7 +168,7 @@ Returns a [Video](#video-object) Object (as a Generator)
 You can also get Videos by a Category
 
 ```python
-from eporner_api.eporner_api import Client, Category
+from eporner_api import Client, Category
 
 videos = Client().get_videos_by_category(category=Category.ASIAN) # or something else,
 
@@ -208,7 +206,7 @@ The Quality object has three types:
 
 
 ```python
-from base_api.modules.quality import Quality
+from eporner_api import Quality
 
 quality = Quality.BEST
 quality = Quality.HALF
@@ -226,10 +224,9 @@ Videos on EPorner are available in AV1 and MP4 (H264) format.
 <br>I recommend MP4 (H264)
 
 ```python
-from eporner_api.modules.locals import Encoding
-
-encoding = Encoding.mp4_h264 # Recommended!
-encoding = Encoding.av1
+from eporner_api import locals
+encoding = locals.Encoding.mp4_h264 # Recommended!
+encoding = locals.Encoding.av1
 ```
 
 
@@ -247,9 +244,9 @@ The sorting objects are needed for searching.
 - top_weekly
 - top_monthly
 ```python
-from eporner_api.modules.sorting import Order
+from eporner_api import sorting
 
-order = Order.latest
+order = sorting.Order.latest
 # etc...
 ```
 
@@ -259,9 +256,9 @@ order = Order.latest
 - only_gay_content
 
 ```python
-from eporner_api.modules.sorting import Gay
+from eporner_api import sorting
 
-gay = Gay.exclude_gay_content
+gay = sorting.Gay.exclude_gay_content
 # etc...
 ```
 
@@ -272,9 +269,9 @@ gay = Gay.exclude_gay_content
 - only_low_quality_content
 
 ```python
-from eporner_api.modules.sorting import LowQuality
+from eporner_api import sorting
 
-quality_sorting = LowQuality.exclude_low_quality_content
+quality_sorting = sorting.LowQuality.exclude_low_quality_content
 # etc...
 ```
 
@@ -283,9 +280,9 @@ quality_sorting = LowQuality.exclude_low_quality_content
 All categories are in the Category class.
 ```python
 
-from eporner_api.modules.locals import Category
-Category.AMATEUR
-Category.ASMR 
+from eporner_api import locals
+locals.Category.AMATEUR
+locals.Category.ASMR 
 
 # etc...
 ```

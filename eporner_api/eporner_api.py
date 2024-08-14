@@ -1,5 +1,4 @@
 import html
-
 import requests
 import json
 import argparse

@@ -52,7 +52,7 @@ pip install --upgrade git+https://github.com/EchterAlsFake/EPorner_API.git
 
 
 ```python
-from eporner_api.eporner_api import Client, Quality
+from eporner_api import Client, Quality
 # Initialize a Client object
 client = Client()
 
