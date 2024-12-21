@@ -23,6 +23,7 @@ from typing import Generator
 from base_api.base import Core
 from base_api.modules.quality import Quality
 from base_api.modules.download import legacy_download
+from typing import Union
 
 
 """
@@ -502,7 +503,7 @@ class Client:
         return Video(url, enable_html_scraping=enable_html_scraping)
 
     @classmethod
-    def search_videos(cls, query: str, sorting_gay: Gay, sorting_order: Order, sorting_low_quality: LowQuality,
+    def search_videos(cls, query: str, sorting_gay: Union[Gay, str], sorting_order: Union[Order, str], sorting_low_quality: Union[LowQuality, str],
                       page: int, per_page: int, enable_html_scraping=False):
 
         response = Core().get_content(f"{ROOT_URL}{API_SEARCH}?query={query}&per_page={per_page}&%page={page}"
