@@ -48,3 +48,5 @@ Quality.BEST would translate to "best"
 - fixed pagination
 - Fixed #4, but I am not entirely if this issue is really completely fixed lol
 - updated to eaf base api v2
+- fixed pornstar pagination
+- fixed quality selection
