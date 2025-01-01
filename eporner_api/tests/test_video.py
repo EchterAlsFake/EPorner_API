@@ -1,6 +1,6 @@
-from ..eporner_api import Client, Quality, Encoding, NotAvailable
+from ..eporner_api import Client, Encoding, NotAvailable
 
-url = "https://www.eporner.com/hd-porn/f8MuayGnGiS/Exciting-Moments-With-Lacey-Duvalle/"
+url = "https://www.eporner.com/video-0t0CdQ8Fhaf/hypnotic-big-tits-therapy-video-5-cock-hero/"
 video = Client.get_video(url, enable_html_scraping=True)
 
 
@@ -65,13 +65,13 @@ def test_author():
 
 
 def test_direct_download_url():
-    assert isinstance(video.direct_download_link(quality=Quality.BEST, mode=Encoding.mp4_h264), str)
-    assert isinstance(video.direct_download_link(quality=Quality.HALF, mode=Encoding.mp4_h264), str)
-    assert isinstance(video.direct_download_link(quality=Quality.WORST, mode=Encoding.mp4_h264), str)
+    assert isinstance(video.direct_download_link(quality="best", mode=Encoding.mp4_h264), str)
+    assert isinstance(video.direct_download_link(quality="half", mode=Encoding.mp4_h264), str)
+    assert isinstance(video.direct_download_link(quality="worst", mode=Encoding.mp4_h264), str)
     try:
-        assert isinstance(video.direct_download_link(quality=Quality.BEST, mode=Encoding.av1), str)
-        assert isinstance(video.direct_download_link(quality=Quality.HALF, mode=Encoding.av1), str)
-        assert isinstance(video.direct_download_link(quality=Quality.WORST, mode=Encoding.av1), str)
+        assert isinstance(video.direct_download_link(quality="best", mode=Encoding.av1), str)
+        assert isinstance(video.direct_download_link(quality="half", mode=Encoding.av1), str)
+        assert isinstance(video.direct_download_link(quality="worst", mode=Encoding.av1), str)
 
     except NotAvailable:
         pass

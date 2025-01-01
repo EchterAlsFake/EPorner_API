@@ -1,4 +1,4 @@
-__all__ = ["Client", "locals", "Quality", "progressbar", "sorting", "errors", "consts",
+__all__ = ["Client", "locals", "progressbar", "sorting", "errors", "consts",
            "Video"]
 
 from eporner_api.eporner_api import *

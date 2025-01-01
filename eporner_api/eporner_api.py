@@ -1,7 +1,8 @@
 import html
-import requests
 import json
+import logging
 import argparse
+import traceback
 
 try:
     from .modules.consts import *
@@ -17,13 +18,11 @@ except (ModuleNotFoundError, ImportError):
     from modules.sorting import *
     from modules.progressbar import *
 
-from functools import cached_property
 from bs4 import BeautifulSoup
-from typing import Generator
-from base_api.base import Core
-from base_api.modules.quality import Quality
-from base_api.modules.download import legacy_download
-
+from urllib.parse import urljoin
+from base_api.base import BaseCore
+from typing import Generator, Union
+from functools import cached_property
 
 """
 Copyright (c) 2024 Johannes Habel
@@ -55,9 +54,18 @@ If you still need additional functionalities and information from videos / Eporn
 HTML Content. See the Documentation for more details.
 """
 
+core = BaseCore()
+logging.basicConfig(format='%(name)s %(levelname)s %(asctime)s %(message)s', datefmt='%I:%M:%S %p')
+logger = logging.getLogger("EPORNER API")
+logger.setLevel(logging.DEBUG)
+
+def disable_logging():
+    logger.setLevel(logging.CRITICAL)
+
+
 
 class Video:
-    def __init__(self, url, enable_html_scraping=False):
+    def __init__(self, url: str, enable_html_scraping: bool = False):
         self.url = url
         self.enable_html = enable_html_scraping
         self.html_content = None
@@ -99,7 +107,7 @@ class Video:
         :return:
         """
 
-        data = Core().get_content(f"{ROOT_URL}{API_VIDEO_ID}?id={self.video_id}&thumbsize=medium&format=json").decode("utf-8")
+        data = core.fetch(f"{ROOT_URL}{API_VIDEO_ID}?id={self.video_id}&thumbsize=medium&format=json")
         parsed_data = json.loads(data)
         return parsed_data
 
@@ -165,48 +173,8 @@ class Video:
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        self.html_content = html.unescape(Core().get_content(self.url).decode("utf-8"))
+        self.html_content = html.unescape(core.fetch(self.url))
 
-    @classmethod
-    def highlight_error_position(cls, json_string, char_position):
-        lines = json_string.splitlines()
-
-        # Calculate line and column number from char_position
-        current_char_count = 0
-        for line_number, line in enumerate(lines, start=1):
-            next_char_count = current_char_count + len(line) + 1 # +1 for the newline character
-            if next_char_count > char_position:
-                column_number = char_position - current_char_count
-                print(f"Error at Line {line_number}, Column {column_number}:")
-                print(line)
-                print(" " * (column_number - 1) + "^")
-                break
-            current_char_count = next_char_count
-
-    @classmethod
-    def fix_json_string(cls, json_string):
-        in_quotes = False
-        result = []
-
-        for char in json_string:
-            if char == '"' and not in_quotes:
-                # Entering a quoted string
-                in_quotes = True
-            elif char == '"' and in_quotes:
-                # Exiting a quoted string
-                in_quotes = False
-
-            if char == ':' and in_quotes:
-                # Skip this colon since it's inside quotes
-                continue
-            elif char in ['\n', '\r'] and in_quotes:
-                # Escape new line characters inside quoted strings
-                result.append(r'\\n')
-                continue
-            else:
-                result.append(char)
-
-        return ''.join(result)
 
     def extract_json_from_html(self):
         if not self.enable_html:
@@ -233,7 +201,7 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
 
     def flatten_json(self, nested_json, parent_key='', sep='_'):
         """
-        Flatten a nested json dictionary. Duplicate keys will be overridden.
+        Flatten a nested JSON dictionary. Duplicate keys will be overridden.
 
         :param nested_json: The nested JSON dictionary to be flattened.
         :param parent_key: The base key to use for the flattened keys.
@@ -250,30 +218,25 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
         return dict(items)
 
     @cached_property
-    def bitrate(self):
-        if self.enable_html:
-            return self.html_json_data["bitrate"]
+    def bitrate(self) -> str:
+        """Return the bitrate of the video? (I don't know)"""
+        return self.html_json_data["bitrate"] if self.enable_html else None
 
-        else:
-            return None
 
     @cached_property
-    def source_video_url(self):
+    def source_video_url(self) -> str:
         """
         Returns the .mp4 video location URL
 
         :return: str
         """
-        if self.enable_html:
-            return self.html_json_data["contentUrl"]
+        return self.html_json_data["contentUrl"] if self.enable_html else None
 
-        else:
-            return None
 
     @cached_property
-    def rating(self):
+    def rating(self) -> str:
         """
-        Returns the rating value. Highest (best) is 100, least is 0 (worst)
+        Returns the rating value. Highest (best) is 100, least is zero (worst)
         :return: str
         """
         if self.enable_html:
@@ -284,37 +247,31 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
                 raise NotAvailable("No rating available. This isn't an error!")
 
     @cached_property
-    def likes(self):
+    def likes(self) -> str:
         """
         Returns the video likes
         :return: str
         """
-        if self.enable_html:
-            return REGEX_VIDEO_LIKES.search(self.html_content).group(1)
+        return REGEX_VIDEO_LIKES.search(self.html_content).group(1) if self.enable_html else None
 
     @cached_property
-    def dislikes(self):
+    def dislikes(self) -> str:
         """
         Returns the video dislikes
         :return:
         """
-        if self.enable_html:
-            return REGEX_VIDEO_DISLIKES.search(self.html_content).group(1)
+        return REGEX_VIDEO_DISLIKES.search(self.html_content).group(1) if self.enable_html else None
 
     @cached_property
-    def rating_count(self):
+    def rating_count(self) -> str:
         """
         Returns how many people have rated the video
         :return: str
         """
-        if self.enable_html:
-            return self.html_json_data["aggregateRating_ratingCount"]
-
-        else:
-            return None
+        return self.html_json_data["aggregateRating_ratingCount"] if self.enable_html else None
 
     @cached_property
-    def author(self):
+    def author(self) -> str:
         """
         Returns the Uploader of the Video
         :return: str
@@ -339,7 +296,6 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        quality = Core().fix_quality(quality)
         soup = BeautifulSoup(self.html_content, 'html.parser')
         available_links = []
 
@@ -355,53 +311,66 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
                 for preference in quality_preferences:
                     if preference in link_text:
                         available_links.append((preference, href))
-                        break  # Stop once the first matching preference is found for this link
+                        break
 
-        # Sort available links by quality preferences
+        # Filter and sort available links
+        available_links = [(res, link) for res, link in available_links if res in quality_preferences]
         available_links.sort(key=lambda x: quality_preferences.index(x[0]))
 
-        start_index = 0
-        if quality == Quality.HALF:
-            start_index = len(quality_preferences) // 3  # Adjust based on preference
-        elif quality == Quality.WORST:
-            start_index = 2 * len(quality_preferences) // 3  # Adjust based on preference
+        if not available_links:
+            raise NotAvailable(f"No available links for quality '{quality}' and mode '{mode}'.")
 
-        # Filter links based on quality preference and availability
-        for preference in quality_preferences[start_index:]:
+        # Select the range of qualities based on the specified quality
+        if quality == "best":
+            relevant_qualities = quality_preferences[:len(quality_preferences) // 3]
+        elif quality == "half":
+            relevant_qualities = quality_preferences[len(quality_preferences) // 3: 2 * len(quality_preferences) // 3]
+        elif quality == "worst":
+            relevant_qualities = quality_preferences[2 * len(quality_preferences) // 3:]
+        else:
+            relevant_qualities = quality_preferences
+
+        # Return the first matching link from the relevant qualities
+        for preference in relevant_qualities:
             for resolution, link in available_links:
                 if resolution == preference:
-                    return f"https://eporner.com{link}"
+                    return urljoin("https://eporner.com", link)
 
-        # If no specific match is found, return None or the lowest available quality
-        if len(available_links) <= 0:
-            raise NotAvailable("No available links for given quality / mode found. Not all videos support AV1")
-
-        return "https://eporner.com" + available_links[-1][1] if available_links else None
+        # Fallback to the lowest available quality
+        return urljoin("https://eporner.com", available_links[-1][1])
 
     def download(self, quality, path, callback=None, mode=Encoding.mp4_h264):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        quality = Core().fix_quality(quality)
-        session = requests.Session()
-        response_redirect_url = session.get(self.direct_download_link(quality, mode),
+        response_redirect_url = core.fetch(self.direct_download_link(quality, mode),
                                             allow_redirects=False)
 
         if 'Location' in response_redirect_url.headers:
             redirected_url = response_redirect_url.headers['Location']
-            legacy_download(stream=True, url=redirected_url, callback=callback, path=path)
+            try:
+                core.legacy_download(stream=True, url=redirected_url, callback=callback, path=path)
+                return True
+
+            except Exception:
+                error = traceback.format_exc()
+                logger.error(error)
+                return False
 
 
 class Pornstar:
-    def __init__(self, url, enable_html_scraping=False):
+    def __init__(self, url: str, enable_html_scraping: bool = False):
         self.url = url
         self.enable_html_scraping = enable_html_scraping
-        self.html_content = requests.get(self.url).text
+        self.html_content = core.fetch(self.url)
 
-    def videos(self, pages: int = 2) -> Generator:
+    def videos(self, pages: int = 0) -> Generator[Video, None, None]:
+        if pages == 0:
+            pages = int(self.video_amount) / 37 # One page contains 37 videos
+
         urls = []
-        for page in range(pages):
-            response = Core().get_content(self.url).decode("utf-8")
+        for page in range(1, pages):
+            response = core.fetch(urljoin(self.url + "/", str(page)))
             extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
             for url in extraction:
                 url = f"https://www.eporner.com{url}"
@@ -412,102 +381,124 @@ class Pornstar:
             yield Video(url, enable_html_scraping=self.enable_html_scraping)
 
     @cached_property
-    def name(self):
+    def name(self) -> str:
+        """Returns the name of the Pornstar"""
         return REGEX_PORNSTAR_NAME.search(self.html_content).group(1)
 
     @cached_property
-    def subscribers(self):
+    def subscribers(self) -> str:
+        """Returns the number of subscribers the pornstar has"""
         return REGEX_PORNSTAR_SUBSCRIBERS.search(self.html_content).group(1).replace("(", "").replace(")", "")
 
     @cached_property
-    def picture(self):
-        REGEX_PORNSTAR_PICTURE = re.compile(fr'<img src="(.*?)" alt="{self.name}" >')
-        return REGEX_PORNSTAR_PICTURE.search(self.html_content).group(1)
+    def picture(self) ->str:
+        """Returns the URL of the pornstar picture"""
+        regex_pornstar_picture = re.compile(fr'<img src="(.*?)" alt="{self.name}" >')
+        return regex_pornstar_picture.search(self.html_content).group(1)
 
     @cached_property
-    def photos_amount(self):
+    def photos_amount(self) -> str:
+        """Returns the number of photos the pornstar has"""
         return REGEX_PORNSTAR_PHOTOS_AMOUNT.search(self.html_content).group(1)
 
     @cached_property
-    def video_amount(self):
+    def video_amount(self) -> str:
+        """Returns the number of videos the pornstar has"""
         return REGEX_PORNSTAR_VIDEO_AMOUNT.search(self.html_content).group(1)
 
     @cached_property
-    def pornstar_rank(self):
+    def pornstar_rank(self) -> str:
+        """Returns the pornstar rank"""
         return REGEX_PORNSTAR_RANK.search(self.html_content).group(1)
 
     @cached_property
-    def profile_views(self):
+    def profile_views(self) -> str:
+        """Returns the number of profile views"""
         return REGEX_PORNSTAR_PROFILE_VIEWS.search(self.html_content).group(1)
 
     @cached_property
-    def video_views(self):
+    def video_views(self) -> str:
+        """Returns the number of video views"""
         return REGEX_PORNSTAR_VIDEO_VIEWS.search(self.html_content).group(1)
 
     @cached_property
-    def photo_views(self):
+    def photo_views(self) -> str:
+        """Returns the number of photo views"""
         return REGEX_PORNSTAR_PHOTO_VIEWS.search(self.html_content).group(1)
 
     @cached_property
-    def country(self):
+    def country(self) -> str:
+        """Returns the country of the pornstar"""
         return REGEX_PORNSTAR_COUNTRY.search(self.html_content).group(1)
 
     @cached_property
-    def age(self):
+    def age(self) -> str:
+        """Returns the age of the pornstar"""
         return REGEX_PORNSTAR_AGE.search(self.html_content).group(1)
 
     @cached_property
-    def ethnicity(self):
+    def ethnicity(self) -> str:
+        """Returns the ethnicity of the pornstar"""
         return REGEX_PORNSTAR_ETHNICITY.search(self.html_content).group(1)
 
     @cached_property
-    def eye_color(self):
+    def eye_color(self) -> str:
+        """Returns the eye color of the pornstar"""
         return REGEX_PORNSTAR_EYE_COLOR.search(self.html_content).group(1)
 
     @cached_property
-    def hair_color(self):
+    def hair_color(self) -> str:
+        """Returns the hair color of the pornstar"""
         return REGEX_PORNSTAR_HAIR_COLOR.search(self.html_content).group(1)
 
     @cached_property
-    def height(self):
+    def height(self) -> str:
+        """Returns the height of the pornstar"""
         return REGEX_PORNSTAR_HEIGHT.search(self.html_content).group(1)
 
     @cached_property
-    def weight(self):
+    def weight(self) -> str:
+        """Returns the weight of the pornstar"""
         return REGEX_PORNSTAR_WEIGHT.search(self.html_content).group(1)
 
     @cached_property
-    def cup(self):
+    def cup(self) -> str:
+        """Returns the cup size of the pornstar"""
         return REGEX_PORNSTAR_CUP.search(self.html_content).group(1)
 
     @cached_property
-    def measurements(self):
+    def measurements(self) -> str:
+        """Returns the measurements of the pornstar"""
         return REGEX_PORNSTAR_MEASUREMENTS.search(self.html_content).group(1)
 
     @cached_property
-    def aliases(self):
+    def aliases(self) -> list:
+        """Returns the aliases of the pornstar"""
         aliases = REGEX_PORNSTAR_ALIASES.search(self.html_content).group(1)
         aliases_filtered = re.findall("<li>(.*?)</li>", aliases)
         return aliases_filtered
 
     @cached_property
-    def biography(self):
+    def biography(self) -> str:
+        """Returns the biography of the pornstar"""
         return REGEX_PORNSTAR_BIOGRAPHY.search(self.html_content).group(1)
 
 
 class Client:
 
     @classmethod
-    def get_video(cls, url, enable_html_scraping=False):
+    def get_video(cls, url: str, enable_html_scraping: bool = False) -> Video:
+        """Returns the Video object for a given URL"""
         return Video(url, enable_html_scraping=enable_html_scraping)
 
     @classmethod
-    def search_videos(cls, query: str, sorting_gay: Gay, sorting_order: Order, sorting_low_quality: LowQuality,
-                      page: int, per_page: int, enable_html_scraping=False):
+    def search_videos(cls, query: str, sorting_gay: Union[str, Gay], sorting_order: Union[str, Order],
+                      sorting_low_quality: Union[str, LowQuality],
+                      page: int, per_page: int, enable_html_scraping: bool = False) -> Generator[Video, None, None]:
 
-        response = Core().get_content(f"{ROOT_URL}{API_SEARCH}?query={query}&per_page={per_page}&%page={page}"
+        response = core.fetch(f"{ROOT_URL}{API_SEARCH}?query={query}&per_page={per_page}&%page={page}"
                                 f"&thumbsize=medium&order={sorting_order}&gay={sorting_gay}&lq="
-                                f"{sorting_low_quality}&format=json").decode("utf-8")
+                                f"{sorting_low_quality}&format=json")
 
         json_data = json.loads(response)
         for video_ in json_data.get("videos", []):  # Don't know why this works lmao
@@ -515,9 +506,10 @@ class Client:
             yield Video(id_, enable_html_scraping)
 
     @classmethod
-    def get_videos_by_category(cls, category: Category, enable_html_scraping=False):
+    def get_videos_by_category(cls, category: Union[str, Category], enable_html_scraping: bool = False)\
+            -> Generator[Video, None, None]:
         for page in range(100):
-            response = Core().get_content(f"{ROOT_URL}cat/{category}/{page}").decode("utf-8")
+            response = core.fetch(f"{ROOT_URL}cat/{category}/{page}")
             extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
             for url in extraction:
                 url = f"https://www.eporner.com{url}"
@@ -525,7 +517,7 @@ class Client:
                 yield Video(url, enable_html_scraping=enable_html_scraping)
 
     @classmethod
-    def get_pornstar(cls, url, enable_html_scraping=True):
+    def get_pornstar(cls, url: str, enable_html_scraping: bool = True) -> Pornstar:
         return Pornstar(url, enable_html_scraping)
 
 
@@ -546,7 +538,7 @@ def main():
     if args.download:
         client = Client()
         video = client.get_video(args.download, enable_html_scraping=True)
-        path = Core().return_path(args=args, video=video)
+        path = core.return_path(args=args, video=video)
         video.download(quality=args.quality, path=path)
 
     if args.file:
@@ -560,7 +552,7 @@ def main():
             videos.append(client.get_video(url, enable_html_scraping=True))
 
         for video in videos:
-            path = Core().return_path(args=args, video=video)
+            path = core.return_path(args=args, video=video)
             video.download(quality=args.quality, path=path)
 
 

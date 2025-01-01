@@ -41,3 +41,10 @@ Quality.BEST would translate to "best"
 - switched to eaf base api
 - added command line usage
 - fixed stuff I don't remember lol
+
+# 1.8
+- proxy support (See Documentation)
+- type hinting
+- fixed pagination
+- Fixed #4, but I am not entirely if this issue is really completely fixed lol
+- updated to eaf base api v2
