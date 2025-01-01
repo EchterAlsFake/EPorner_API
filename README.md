@@ -34,11 +34,11 @@ EPorner API is an API for EPorner, which allows you to fetch information from vi
 More will be coming in the next versions!
 
 > [!NOTE]
-> GitHub tests are failing for some weird reason, but the API is itself is perfectly working!
+> GitHub tests are failing for some weird reason, but the API itself is perfectly working!
 
 # Quickstart
 
-### Have a look at the [Documentation](https://github.com/EchterAlsFake/EPorner_API/blob/master/README/Documentation.md) for more details
+### Have a look at the [Documentation](https://github.com/EchterAlsFake/API_Docs/blob/master/Porn_APIs/EPorner.md) for more details
 
 ## Installation
 
