@@ -2,11 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name="Eporner_API",
-    version="1.8.0",
+    version="1.8.1",
     packages=find_packages(),
-    install_requires=[
-        "requests", "bs4", "lxml", "eaf_base_api"
-    ],
+    install_requires=["bs4", "eaf_base_api"],
     entry_points={
         'console_scripts': ['eporner_api=eporner_api.eporner_api:main'
             # If you want to create any executable scripts
