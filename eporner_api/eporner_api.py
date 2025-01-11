@@ -181,7 +181,7 @@ class Video:
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        soup = BeautifulSoup(self.html_content, 'lxml')
+        soup = BeautifulSoup(self.html_content, 'html.parser')
         script_tags = soup.find_all('script', {'type': 'application/ld+json'})
 
         combined_data = {}
