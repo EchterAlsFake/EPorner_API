@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="Eporner_API",
-    version="1.8.1",
+    version="1.8.2",
     packages=find_packages(),
     install_requires=["bs4", "eaf_base_api"],
     entry_points={

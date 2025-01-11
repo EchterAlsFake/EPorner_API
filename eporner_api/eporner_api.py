@@ -2,6 +2,7 @@ import html
 import json
 import logging
 import argparse
+import os.path
 import traceback
 
 try:
@@ -289,8 +290,8 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
     def direct_download_link(self, quality, mode) -> str:
         """
         Returns the direct download URL for a given quality
-        :param quality:
-        :param mode:
+        :param quality: 'best', 'half', 'worst', or a specific resolution like '720p'
+        :param mode: The mode to filter links by (e.g., 'video')
         :return: str
         """
         if not self.enable_html:
@@ -313,49 +314,42 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
                         available_links.append((preference, href))
                         break
 
-        # Filter and sort available links
-        available_links = [(res, link) for res, link in available_links if res in quality_preferences]
-        available_links.sort(key=lambda x: quality_preferences.index(x[0]))
+        reversed_links = list(reversed(available_links))
 
-        if not available_links:
-            raise NotAvailable(f"No available links for quality '{quality}' and mode '{mode}'.")
-
-        # Select the range of qualities based on the specified quality
         if quality == "best":
-            relevant_qualities = quality_preferences[:len(quality_preferences) // 3]
+            quality, url = reversed_links[0]
+
         elif quality == "half":
-            relevant_qualities = quality_preferences[len(quality_preferences) // 3: 2 * len(quality_preferences) // 3]
+            index_to_use = round(len(available_links) / 2)
+            quality, url = reversed_links[index_to_use]
+
         elif quality == "worst":
-            relevant_qualities = quality_preferences[2 * len(quality_preferences) // 3:]
+            quality, url = reversed_links[-1]
+
         else:
-            relevant_qualities = quality_preferences
+            raise "No URLs available? Please report that"
 
-        # Return the first matching link from the relevant qualities
-        for preference in relevant_qualities:
-            for resolution, link in available_links:
-                if resolution == preference:
-                    return urljoin("https://eporner.com", link)
+        return urljoin("https://eporner.com", str(url))
 
-        # Fallback to the lowest available quality
-        return urljoin("https://eporner.com", available_links[-1][1])
-
-    def download(self, quality, path, callback=None, mode=Encoding.mp4_h264):
+    def download(self, quality, path, callback=None, mode=Encoding.mp4_h264, no_title=False):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
         response_redirect_url = core.fetch(self.direct_download_link(quality, mode),
-                                            allow_redirects=False)
+                                            allow_redirects=True, get_response=True)
 
-        if 'Location' in response_redirect_url.headers:
-            redirected_url = response_redirect_url.headers['Location']
-            try:
-                core.legacy_download(stream=True, url=redirected_url, callback=callback, path=path)
-                return True
+        if no_title is False:
+            path = os.path.join(path, f"{self.title}.mp4")
 
-            except Exception:
-                error = traceback.format_exc()
-                logger.error(error)
-                return False
+        try:
+            core.legacy_download(url=str(response_redirect_url.url), callback=callback, path=path)
+            return True
+
+        except Exception:
+            error = traceback.format_exc()
+            logger.error(error)
+            return False
+
 
 
 class Pornstar:
@@ -530,16 +524,16 @@ def main():
                         help="(Optional) Specify a file with URLs (separated with new lines)")
     parser.add_argument("--output", metavar="Output directory", type=str, help="The output path (with filename)",
                         required=True)
-    parser.add_argument("--use-title", metavar="True,False", type=bool,
+    parser.add_argument("--no-title", metavar="True,False", type=str,
                         help="Whether to apply video title automatically to output path or not", required=True)
 
     args = parser.parse_args()
+    no_title = BaseCore().str_to_bool(args.no_title)
 
     if args.download:
         client = Client()
         video = client.get_video(args.download, enable_html_scraping=True)
-        path = core.return_path(args=args, video=video)
-        video.download(quality=args.quality, path=path)
+        video.download(quality=args.quality, path=args.output, no_title=no_title)
 
     if args.file:
         videos = []
@@ -552,8 +546,7 @@ def main():
             videos.append(client.get_video(url, enable_html_scraping=True))
 
         for video in videos:
-            path = core.return_path(args=args, video=video)
-            video.download(quality=args.quality, path=path)
+            video.download(quality=args.quality, path=args.output, no_title=no_title)
 
 
 if __name__ == "__main__":
