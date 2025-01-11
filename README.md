@@ -2,8 +2,10 @@
 
 <div align="center">
     <a href="https://pepy.tech/project/Eporner-API"><img src="https://static.pepy.tech/badge/Eporner-API" alt="Downloads"></a>
+    <a href="https://pepy.tech/project/Eporner-API-async"><img src="https://static.pepy.tech/badge/Eporner-API-async" alt="Downloads"></a> <span style="font-size: 20px">Async</span>
     <a href="https://github.com/EchterAlsFake/EPorner_API/workflows/"><img src="https://github.com/EchterAlsFake/EPorner_API/workflows/CodeQL/badge.svg" alt="CodeQL Analysis"/></a>
-    <a href="https://github.com/EchterAlsFake/EPorner_API/workflows/"><img src="https://github.com/EchterAlsFake/EPorner_API/actions/workflows/tests.yml/badge.svg" alt="API Tests"/></a>
+    <a href="https://github.com/EchterAlsFake/EPorner_API/workflows/"><img src="https://github.com/EchterAlsFake/EPorner_API/actions/workflows/tests.yml/badge.svg" alt="Sync API Tests"/></a>
+<a href="https://github.com/EchterAlsFake/EPorner_API/workflows/"><img src="https://github.com/EchterAlsFake/EPorner_API/actions/workflows/async-tests.yml/badge.svg?branch=async" alt="Async API Tests"/></a>
 </div>
 
 # Description
@@ -32,9 +34,6 @@ EPorner API is an API for EPorner, which allows you to fetch information from vi
 > - Downloading videos
 
 More will be coming in the next versions!
-
-> [!NOTE]
-> GitHub tests are failing for some weird reason, but the API itself is perfectly working!
 
 # Quickstart
 

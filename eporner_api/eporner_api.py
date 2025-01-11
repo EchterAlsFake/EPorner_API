@@ -1,4 +1,4 @@
-import html
+import asyncio
 import json
 import logging
 import argparse
@@ -22,7 +22,7 @@ except (ModuleNotFoundError, ImportError):
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from base_api.base import BaseCore
-from typing import Generator, Union
+from typing import Union, List
 from functools import cached_property
 
 """
@@ -64,21 +64,84 @@ def disable_logging():
     logger.setLevel(logging.CRITICAL)
 
 
+def extract_json_from_html(html_content):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    script_tags = soup.find_all('script', {'type': 'application/ld+json'})
+
+    combined_data = {}
+
+    for script in script_tags:
+        json_text = script.string.strip()
+        try:
+            data = json.loads(json_text)
+
+        except json.decoder.JSONDecodeError:
+            raise InvalidVideo("""
+JSONDecodeError: I need your help to fix this error. Please report the URL you've used on GitHub. Thanks :)""")
+
+        combined_data.update(data)
+
+    cleaned_dictionary =flatten_json(combined_data)
+    return cleaned_dictionary
+
+
+def flatten_json(nested_json, parent_key='', sep='_'):
+    """
+    Flatten a nested JSON dictionary. Duplicate keys will be overridden.
+
+    :param nested_json: The nested JSON dictionary to be flattened.
+    :param parent_key: The base key to use for the flattened keys.
+    :param sep: The separator between nested keys.
+    :return: A flattened dictionary.
+    """
+    items = []
+    for k, v in nested_json.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_json(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
 
 class Video:
-    def __init__(self, url: str, enable_html_scraping: bool = False):
+    def __init__(self, url: str, enable_html_scraping: bool = False, content: str = None, json_data: dict = None,
+                html_json_data: dict = None) -> None:
         self.url = url
         self.enable_html = enable_html_scraping
-        self.html_content = None
-        self.json_data = self.raw_json_data()
-        if self.enable_html:
-            self.request_html_content()
-            is_removed = REGEX_VIDEO_DISABLED.findall(self.html_content)
+        self.html_content = content
+        self.html_json_data = html_json_data
+        self.json_data = json_data
+
+    @classmethod
+    async def create(cls, url: str, enable_html_scraping: bool = False):
+        if enable_html_scraping:
+            html_content = await core.fetch(url)
+            is_removed = REGEX_VIDEO_DISABLED.findall(html_content)
             for _ in is_removed:
                 if _ == "deletedfile":
                     raise VideoDisabled("Video has been removed because of a Copyright claim")
 
-            self.html_json_data = self.extract_json_from_html()
+            if str(url).startswith("https://"):
+                video_id = REGEX_ID.search(url)
+                if video_id:
+                    id = video_id.group(1)
+
+                else:
+                    video_id = REGEX_ID_ALTERNATE.search(url)
+                    id = video_id.group(1)
+
+            data = await core.fetch(f"{ROOT_URL}{API_VIDEO_ID}?id={id}&thumbsize=medium&format=json")
+            json_data = json.loads(data)
+            html_json_data = extract_json_from_html(html_content)
+
+        else:
+            html_content = None
+            data = await core.fetch(f"{ROOT_URL}{API_VIDEO_ID}?id={id}&thumbsize=medium&format=json")
+            json_data = json.loads(data)
+            html_json_data = None
+
+        return cls(url, enable_html_scraping, html_content, json_data, html_json_data)
 
     @cached_property
     def video_id(self) -> str:
@@ -101,16 +164,6 @@ class Video:
 
         else:
             return self.url  # Assuming this is a video ID (hopefully)
-
-    def raw_json_data(self):
-        """
-        Uses the V2 API to retrieve information from a video
-        :return:
-        """
-
-        data = core.fetch(f"{ROOT_URL}{API_VIDEO_ID}?id={self.video_id}&thumbsize=medium&format=json")
-        parsed_data = json.loads(data)
-        return parsed_data
 
     @cached_property
     def tags(self) -> list:
@@ -169,54 +222,6 @@ class Video:
     """
     The following methods are using HTML scraping. This is against the ToS from EPorner.com!
     """
-
-    def request_html_content(self):
-        if not self.enable_html:
-            raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
-
-        self.html_content = html.unescape(core.fetch(self.url))
-
-
-    def extract_json_from_html(self):
-        if not self.enable_html:
-            raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
-
-        soup = BeautifulSoup(self.html_content, 'html.parser')
-        script_tags = soup.find_all('script', {'type': 'application/ld+json'})
-
-        combined_data = {}
-
-        for script in script_tags:
-            json_text = script.string.strip()
-            try:
-                data = json.loads(json_text)
-
-            except json.decoder.JSONDecodeError:
-                raise InvalidVideo("""
-JSONDecodeError: I need your help to fix this error. Please report the URL you've used on GitHub. Thanks :)""")
-
-            combined_data.update(data)
-
-        cleaned_dictionary = self.flatten_json(combined_data)
-        return cleaned_dictionary
-
-    def flatten_json(self, nested_json, parent_key='', sep='_'):
-        """
-        Flatten a nested JSON dictionary. Duplicate keys will be overridden.
-
-        :param nested_json: The nested JSON dictionary to be flattened.
-        :param parent_key: The base key to use for the flattened keys.
-        :param sep: The separator between nested keys.
-        :return: A flattened dictionary.
-        """
-        items = []
-        for k, v in nested_json.items():
-            new_key = f"{parent_key}{sep}{k}" if parent_key else k
-            if isinstance(v, dict):
-                items.extend(self.flatten_json(v, new_key, sep=sep).items())
-            else:
-                items.append((new_key, v))
-        return dict(items)
 
     @cached_property
     def bitrate(self) -> str:
@@ -331,18 +336,18 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
 
         return urljoin("https://eporner.com", str(url))
 
-    def download(self, quality, path, callback=None, mode=Encoding.mp4_h264, no_title=False):
+    async def download(self, quality, path, callback=None, mode=Encoding.mp4_h264, no_title=False):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        response_redirect_url = core.fetch(self.direct_download_link(quality, mode),
+        response_redirect_url = await core.fetch(self.direct_download_link(quality, mode),
                                             allow_redirects=True, get_response=True)
 
         if no_title is False:
             path = os.path.join(path, f"{self.title}.mp4")
 
         try:
-            core.legacy_download(url=str(response_redirect_url.url), callback=callback, path=path)
+            await core.legacy_download(url=str(response_redirect_url.url), callback=callback, path=path)
             return True
 
         except Exception:
@@ -353,26 +358,31 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
 
 
 class Pornstar:
-    def __init__(self, url: str, enable_html_scraping: bool = False):
+    def __init__(self, url: str, enable_html_scraping: bool = False, content: str = None):
         self.url = url
         self.enable_html_scraping = enable_html_scraping
-        self.html_content = core.fetch(self.url)
+        self.html_content = content
 
-    def videos(self, pages: int = 0) -> Generator[Video, None, None]:
+    @classmethod
+    async def create(cls, url, enable_html_scraping=False):
+        return cls(url, enable_html_scraping=enable_html_scraping, content = await core.fetch(url))
+
+    async def videos(self, pages: int = 0) -> List[Video]:
         if pages == 0:
             pages = int(self.video_amount) / 37 # One page contains 37 videos
 
         urls = []
         for page in range(1, pages):
-            response = core.fetch(urljoin(self.url + "/", str(page)))
+            response = await core.fetch(urljoin(self.url + "/", str(page)))
             extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
             for url in extraction:
                 url = f"https://www.eporner.com{url}"
                 url = url.replace("EPTHBN/", "")
                 urls.append(url)
 
-        for url in urls:
-            yield Video(url, enable_html_scraping=self.enable_html_scraping)
+        video_tasks = [asyncio.create_task(Client.get_video(url, enable_html_scraping=self.enable_html_scraping)) for url in urls]
+        video_results = await asyncio.gather(*video_tasks)
+        return video_results
 
     @cached_property
     def name(self) -> str:
@@ -481,41 +491,56 @@ class Pornstar:
 class Client:
 
     @classmethod
-    def get_video(cls, url: str, enable_html_scraping: bool = False) -> Video:
+    async def get_video(cls, url: str, enable_html_scraping: bool = False) -> Video:
         """Returns the Video object for a given URL"""
-        return Video(url, enable_html_scraping=enable_html_scraping)
+        return await Video.create(url, enable_html_scraping=enable_html_scraping)
 
     @classmethod
-    def search_videos(cls, query: str, sorting_gay: Union[str, Gay], sorting_order: Union[str, Order],
+    async def search_videos(cls, query: str, sorting_gay: Union[str, Gay], sorting_order: Union[str, Order],
                       sorting_low_quality: Union[str, LowQuality],
-                      page: int, per_page: int, enable_html_scraping: bool = False) -> Generator[Video, None, None]:
+                      page: int, per_page: int, enable_html_scraping: bool = False) -> List[Video]:
 
-        response = core.fetch(f"{ROOT_URL}{API_SEARCH}?query={query}&per_page={per_page}&%page={page}"
+        response = await core.fetch(f"{ROOT_URL}{API_SEARCH}?query={query}&per_page={per_page}&%page={page}"
                                 f"&thumbsize=medium&order={sorting_order}&gay={sorting_gay}&lq="
                                 f"{sorting_low_quality}&format=json")
 
         json_data = json.loads(response)
+        video_urls = []
+
         for video_ in json_data.get("videos", []):  # Don't know why this works lmao
-            id_ = video_["url"]
-            yield Video(id_, enable_html_scraping)
+            video_urls.append(video_["url"])
+
+        video_tasks = [asyncio.create_task(Client.get_video(url=url, enable_html_scraping=enable_html_scraping)) for url
+                       in video_urls]
+        video_results = await asyncio.gather(*video_tasks)
+        return video_results
+
 
     @classmethod
-    def get_videos_by_category(cls, category: Union[str, Category], enable_html_scraping: bool = False)\
-            -> Generator[Video, None, None]:
-        for page in range(100):
-            response = core.fetch(f"{ROOT_URL}cat/{category}/{page}")
+    async def get_videos_by_category(cls, category: Union[str, Category], enable_html_scraping: bool = False,
+                               pages: int = 1) -> List[Video]:
+
+        video_urls = []
+
+        for page in range(pages):
+            response = await core.fetch(f"{ROOT_URL}cat/{category}/{page}")
             extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
             for url in extraction:
                 url = f"https://www.eporner.com{url}"
                 url = url.replace("EPTHBN/", "")
-                yield Video(url, enable_html_scraping=enable_html_scraping)
+                video_urls.append(url)
+
+        video_tasks = [asyncio.create_task(Client.get_video(url=url, enable_html_scraping=enable_html_scraping)) for url in video_urls]
+        video_results = await asyncio.gather(*video_tasks)
+        return video_results
+
 
     @classmethod
-    def get_pornstar(cls, url: str, enable_html_scraping: bool = True) -> Pornstar:
-        return Pornstar(url, enable_html_scraping)
+    async def get_pornstar(cls, url: str, enable_html_scraping: bool = True) -> Pornstar:
+        return await Pornstar.create(url, enable_html_scraping)
 
 
-def main():
+async def main():
     parser = argparse.ArgumentParser(description="API Command Line Interface")
     parser.add_argument("--download", metavar="URL (str)", type=str, help="URL to download from")
     parser.add_argument("--quality", metavar="best,half,worst", type=str, help="The video quality (best,half,worst)",
@@ -532,8 +557,8 @@ def main():
 
     if args.download:
         client = Client()
-        video = client.get_video(args.download, enable_html_scraping=True)
-        video.download(quality=args.quality, path=args.output, no_title=no_title)
+        video = await client.get_video(args.download, enable_html_scraping=True)
+        await video.download(quality=args.quality, path=args.output, no_title=no_title)
 
     if args.file:
         videos = []
@@ -543,11 +568,11 @@ def main():
             content = file.read().splitlines()
 
         for url in content:
-            videos.append(client.get_video(url, enable_html_scraping=True))
+            videos.append(await client.get_video(url, enable_html_scraping=True))
 
         for video in videos:
-            video.download(quality=args.quality, path=args.output, no_title=no_title)
+            await video.download(quality=args.quality, path=args.output, no_title=no_title)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

@@ -1,17 +1,18 @@
+import pytest
 from ..eporner_api import Pornstar
 
 url = "https://www.eporner.com/pornstar/riley-reid/"
-pornstar = Pornstar(url)
 
-def test_videos():
-    videos = pornstar.videos(pages=1)
+@pytest.mark.asyncio
+async def test_pornstar_all():
+    pornstar = await Pornstar.create(url)
+    videos = await pornstar.videos(pages=1)
 
     for idx, video in enumerate(videos):
         assert isinstance(video.title, str) and len(video.title) > 3
         if idx == 5:
             break
 
-def test_information():
     assert isinstance(pornstar.pornstar_rank, str) and len(pornstar.pornstar_rank) >= 1
     assert isinstance(pornstar.aliases, list) and len(pornstar.aliases) > 1
     assert isinstance(pornstar.biography, str) and len(pornstar.biography) > 10

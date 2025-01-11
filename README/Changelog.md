@@ -50,3 +50,10 @@ Quality.BEST would translate to "best"
 - updated to eaf base api v2
 - fixed pornstar pagination
 - fixed quality selection
+
+# 1.8.1 - 1.8.4
+- async support
+- fixed downloading
+- fixed quality selection
+- fixed tests
+- added async tests
