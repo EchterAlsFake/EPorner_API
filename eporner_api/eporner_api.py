@@ -63,6 +63,9 @@ logger.setLevel(logging.DEBUG)
 def disable_logging():
     logger.setLevel(logging.CRITICAL)
 
+def refresh_core(): # needed for Porn Fetch
+    global core
+    core = BaseCore()
 
 
 class Video:
