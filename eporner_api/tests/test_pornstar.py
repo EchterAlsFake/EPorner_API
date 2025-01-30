@@ -1,5 +1,5 @@
 from ..eporner_api import Pornstar
-
+import time
 url = "https://www.eporner.com/pornstar/riley-reid/"
 pornstar = Pornstar(url)
 
@@ -7,6 +7,7 @@ def test_videos():
     videos = pornstar.videos(pages=1)
 
     for idx, video in enumerate(videos):
+        time.sleep(5) # Lmao
         assert isinstance(video.title, str) and len(video.title) > 3
         if idx == 5:
             break
