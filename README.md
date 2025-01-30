@@ -3,7 +3,7 @@
 <div align="center">
     <a href="https://pepy.tech/project/Eporner-API"><img src="https://static.pepy.tech/badge/Eporner-API" alt="Downloads"></a>
     <a href="https://github.com/EchterAlsFake/EPorner_API/workflows/"><img src="https://github.com/EchterAlsFake/EPorner_API/workflows/CodeQL/badge.svg" alt="CodeQL Analysis"/></a>
-    <a href="https://github.com/EchterAlsFake/EPorner_API/workflows/"><img src="https://github.com/EchterAlsFake/EPorner_API/actions/workflows/tests.yml/badge.svg" alt="API Tests"/></a>
+    <a href="https://github.com/EchterAlsFake/EPorner_API/workflows/"><img src="https://github.com/EchterAlsFake/EPorner_API/actions/workflows/tests.yml/badge.svg" alt="API Tests"/></a> No TESTS ARE PASSING!
 </div>
 
 # Description
