@@ -1,8 +1,8 @@
 import html
 import json
+import os.path
 import logging
 import argparse
-import os.path
 import traceback
 
 try:
@@ -21,7 +21,7 @@ except (ModuleNotFoundError, ImportError):
 
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-from base_api.base import BaseCore
+from base_api.base import BaseCore, setup_logger
 from typing import Generator, Union
 from functools import cached_property
 
@@ -45,7 +45,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 DISCLAIMER:
 
-Some modules of this project are in violence to the terms of services of EPorner.com
+Some modules of this project are in violation to the terms of services of EPorner.com
 You can read them here: https://www.eporner.com/terms/
 
 You (the user) are responsible for using this API. I am not liable for your actions!
@@ -56,16 +56,13 @@ HTML Content. See the Documentation for more details.
 """
 
 core = BaseCore()
-logging.basicConfig(format='%(name)s %(levelname)s %(asctime)s %(message)s', datefmt='%I:%M:%S %p')
-logger = logging.getLogger("EPORNER API")
-logger.setLevel(logging.DEBUG)
 
-def disable_logging():
-    logger.setLevel(logging.CRITICAL)
 
-def refresh_core(): # needed for Porn Fetch
+def refresh_core(enable_logging=False, log_level=None, log_file=None): # needed for Porn Fetch
     global core
     core = BaseCore()
+    if enable_logging:
+        core.enable_logging(log_file=log_file, level=log_level)
 
 
 class Video:
@@ -73,6 +70,7 @@ class Video:
         self.url = url
         self.enable_html = enable_html_scraping
         self.html_content = None
+        self.logger = setup_logger(name="EPorner API - [Video]", log_file=None, level=logging.CRITICAL)
         self.json_data = self.raw_json_data()
         if self.enable_html:
             self.request_html_content()
@@ -83,6 +81,9 @@ class Video:
 
             self.html_json_data = self.extract_json_from_html()
 
+    def enable_logging(self, log_file: str, level):
+        self.logger = setup_logger(name="EPorner API - [Video]", log_file=log_file, level=level)
+
     @cached_property
     def video_id(self) -> str:
         """
@@ -92,6 +93,7 @@ class Video:
         if str(self.url).startswith("https://"):
             video_id = REGEX_ID.search(self.url)
             if video_id:
+                self.logger.debug(f"Extracted Video ID: {video_id.group(1)}")
                 return video_id.group(1)
 
             else:
@@ -290,6 +292,10 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
                 else:
                     return match.group(1)
 
+            else:
+                self.logger.error("Couldn't find author. Please report this!")
+                return None
+
     def direct_download_link(self, quality, mode) -> str:
         """
         Returns the direct download URL for a given quality
@@ -332,6 +338,7 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
         else:
             raise "No URLs available? Please report that"
 
+        self.logger.error(f"Using direct donwload Link: {str(url)}")
         return urljoin("https://eporner.com", str(url))
 
     def download(self, quality, path, callback=None, mode=Encoding.mp4_h264, no_title=False):
@@ -350,7 +357,7 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
 
         except Exception:
             error = traceback.format_exc()
-            logger.error(error)
+            self.logger.error(error)
             return False
 
 
@@ -359,7 +366,11 @@ class Pornstar:
     def __init__(self, url: str, enable_html_scraping: bool = False):
         self.url = url
         self.enable_html_scraping = enable_html_scraping
+        self.logger = setup_logger(name="EPorner API - [Pornstar]", log_file=None, level=logging.CRITICAL)
         self.html_content = core.fetch(self.url)
+
+    def enable_logging(self, log_file: str, level):
+        self.logger = setup_logger(name="EPorner API - [Pornstar]", log_file=log_file, level=level)
 
     def videos(self, pages: int = 0) -> Generator[Video, None, None]:
         if pages == 0:
@@ -482,10 +493,16 @@ class Pornstar:
 
 
 class Client:
+    def __init__(self):
+        self.logger = setup_logger(name="EPorner API - [Client]", log_file=None, level=logging.CRITICAL)
 
-    @classmethod
-    def get_video(cls, url: str, enable_html_scraping: bool = False) -> Video:
+    def enable_logging(self, log_file: str, level):
+        self.logger = setup_logger(name="EPorner API - [Client]", log_file=log_file, level=level)
+
+
+    def get_video(self, url: str, enable_html_scraping: bool = False) -> Video:
         """Returns the Video object for a given URL"""
+        self.logger.info(f"Returning video object for: {url} HTML Scraping -> {enable_html_scraping}")
         return Video(url, enable_html_scraping=enable_html_scraping)
 
     @classmethod
@@ -502,10 +519,10 @@ class Client:
             id_ = video_["url"]
             yield Video(id_, enable_html_scraping)
 
-    @classmethod
-    def get_videos_by_category(cls, category: Union[str, Category], enable_html_scraping: bool = False)\
+    def get_videos_by_category(self, category: Union[str, Category], enable_html_scraping: bool = False)\
             -> Generator[Video, None, None]:
         for page in range(100):
+            self.logger.debug(f"Iterating category page ->: {page}")
             response = core.fetch(f"{ROOT_URL}cat/{category}/{page}")
             extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
             for url in extraction:
@@ -513,8 +530,8 @@ class Client:
                 url = url.replace("EPTHBN/", "")
                 yield Video(url, enable_html_scraping=enable_html_scraping)
 
-    @classmethod
-    def get_pornstar(cls, url: str, enable_html_scraping: bool = True) -> Pornstar:
+    def get_pornstar(self, url: str, enable_html_scraping: bool = True) -> Pornstar:
+        self.logger.info(f"Returning Pornstar object for: {url} HTML Scraping -> {enable_html_scraping}")
         return Pornstar(url, enable_html_scraping)
 
 
