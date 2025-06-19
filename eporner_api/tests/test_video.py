@@ -1,7 +1,7 @@
 from ..eporner_api import Client, Encoding, NotAvailable
 import time
-url = "https://www.eporner.com/video-0t0CdQ8Fhaf/hypnotic-big-tits-therapy-video-5-cock-hero/"
-video = Client.get_video(url, enable_html_scraping=True)
+url = "https://www.eporner.com/video-bTwP6vsFj5U/human-anal-sex-toy/"
+video = Client().get_video(url, enable_html_scraping=True)
 time.sleep(5)  # Lmao
 
 def test_title():
