@@ -21,9 +21,10 @@ except (ModuleNotFoundError, ImportError):
 
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-from base_api.base import BaseCore, setup_logger
+from base_api.modules import config
 from typing import Generator, Union
 from functools import cached_property
+from base_api.base import BaseCore, setup_logger
 
 """
 Copyright (c) 2024 Johannes Habel
@@ -58,9 +59,10 @@ HTML Content. See the Documentation for more details.
 core = BaseCore()
 
 
-def refresh_core(enable_logging=False, log_level=None, log_file=None): # needed for Porn Fetch
+def refresh_core(custom_config=None, enable_logging=False, log_level=None, log_file=None): # needed for Porn Fetch
     global core
-    core = BaseCore()
+    cfg = custom_config or config
+    core = BaseCore(cfg)
     if enable_logging:
         core.enable_logging(log_file=log_file, level=log_level)
 
