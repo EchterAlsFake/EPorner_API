@@ -21,7 +21,6 @@ except (ModuleNotFoundError, ImportError):
 
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-from base_api.modules import config
 from typing import Generator, Union
 from functools import cached_property
 from base_api.base import BaseCore, setup_logger
@@ -56,19 +55,10 @@ If you still need additional functionalities and information from videos / Eporn
 HTML Content. See the Documentation for more details.
 """
 
-core = BaseCore()
-
-
-def refresh_core(custom_config=None, enable_logging=False, log_level=None, log_file=None): # needed for Porn Fetch
-    global core
-    cfg = custom_config or config
-    core = BaseCore(cfg)
-    if enable_logging:
-        core.enable_logging(log_file=log_file, level=log_level)
-
 
 class Video:
-    def __init__(self, url: str, enable_html_scraping: bool = False):
+    def __init__(self, url: str, enable_html_scraping: bool = False, core = None):
+        self.core = core
         self.url = url
         self.enable_html = enable_html_scraping
         self.html_content = None
@@ -115,7 +105,7 @@ class Video:
         :return:
         """
 
-        data = core.fetch(f"{ROOT_URL}{API_VIDEO_ID}?id={self.video_id}&thumbsize=medium&format=json")
+        data = self.core.fetch(f"{ROOT_URL}{API_VIDEO_ID}?id={self.video_id}&thumbsize=medium&format=json")
         parsed_data = json.loads(data)
         return parsed_data
 
@@ -181,7 +171,7 @@ class Video:
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        self.html_content = html.unescape(core.fetch(self.url))
+        self.html_content = html.unescape(self.core.fetch(self.url))
 
 
     def extract_json_from_html(self):
@@ -347,14 +337,14 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        response_redirect_url = core.fetch(self.direct_download_link(quality, mode),
+        response_redirect_url = self.core.fetch(self.direct_download_link(quality, mode),
                                             allow_redirects=True, get_response=True)
 
         if no_title is False:
             path = os.path.join(path, f"{self.title}.mp4")
 
         try:
-            core.legacy_download(url=str(response_redirect_url.url), callback=callback, path=path)
+            self.core.legacy_download(url=str(response_redirect_url.url), callback=callback, path=path)
             return True
 
         except Exception:
@@ -365,11 +355,12 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
 
 
 class Pornstar:
-    def __init__(self, url: str, enable_html_scraping: bool = False):
+    def __init__(self, url: str, enable_html_scraping: bool = False, core = None):
+        self.core = core
         self.url = url
         self.enable_html_scraping = enable_html_scraping
         self.logger = setup_logger(name="EPorner API - [Pornstar]", log_file=None, level=logging.CRITICAL)
-        self.html_content = core.fetch(self.url)
+        self.html_content = self.core.fetch(self.url)
 
     def enable_logging(self, log_file: str, level):
         self.logger = setup_logger(name="EPorner API - [Pornstar]", log_file=log_file, level=level)
@@ -380,7 +371,7 @@ class Pornstar:
 
         urls = []
         for page in range(1, pages):
-            response = core.fetch(urljoin(self.url + "/", str(page)))
+            response = self.core.fetch(urljoin(self.url + "/", str(page)))
             extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
             for url in extraction:
                 url = f"https://www.eporner.com{url}"
@@ -495,46 +486,45 @@ class Pornstar:
 
 
 class Client:
-    def __init__(self):
+    def __init__(self, core = None):
+        self.core = core or BaseCore()
         self.logger = setup_logger(name="EPorner API - [Client]", log_file=None, level=logging.CRITICAL)
 
     def enable_logging(self, log_file: str, level):
         self.logger = setup_logger(name="EPorner API - [Client]", log_file=log_file, level=level)
 
-
     def get_video(self, url: str, enable_html_scraping: bool = False) -> Video:
         """Returns the Video object for a given URL"""
         self.logger.info(f"Returning video object for: {url} HTML Scraping -> {enable_html_scraping}")
-        return Video(url, enable_html_scraping=enable_html_scraping)
+        return Video(url, enable_html_scraping=enable_html_scraping, core=self.core)
 
-    @classmethod
-    def search_videos(cls, query: str, sorting_gay: Union[str, Gay], sorting_order: Union[str, Order],
+    def search_videos(self, query: str, sorting_gay: Union[str, Gay], sorting_order: Union[str, Order],
                       sorting_low_quality: Union[str, LowQuality],
                       page: int, per_page: int, enable_html_scraping: bool = False) -> Generator[Video, None, None]:
 
-        response = core.fetch(f"{ROOT_URL}{API_SEARCH}?query={query}&per_page={per_page}&%page={page}"
+        response = self.core.fetch(f"{ROOT_URL}{API_SEARCH}?query={query}&per_page={per_page}&%page={page}"
                                 f"&thumbsize=medium&order={sorting_order}&gay={sorting_gay}&lq="
                                 f"{sorting_low_quality}&format=json")
 
         json_data = json.loads(response)
         for video_ in json_data.get("videos", []):  # Don't know why this works lmao
             id_ = video_["url"]
-            yield Video(id_, enable_html_scraping)
+            yield Video(id_, enable_html_scraping, core=self.core)
 
     def get_videos_by_category(self, category: Union[str, Category], enable_html_scraping: bool = False)\
             -> Generator[Video, None, None]:
         for page in range(100):
             self.logger.debug(f"Iterating category page ->: {page}")
-            response = core.fetch(f"{ROOT_URL}cat/{category}/{page}")
+            response = self.core.fetch(f"{ROOT_URL}cat/{category}/{page}")
             extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
             for url in extraction:
                 url = f"https://www.eporner.com{url}"
                 url = url.replace("EPTHBN/", "")
-                yield Video(url, enable_html_scraping=enable_html_scraping)
+                yield Video(url, enable_html_scraping=enable_html_scraping, core=self.core)
 
     def get_pornstar(self, url: str, enable_html_scraping: bool = True) -> Pornstar:
         self.logger.info(f"Returning Pornstar object for: {url} HTML Scraping -> {enable_html_scraping}")
-        return Pornstar(url, enable_html_scraping)
+        return Pornstar(url, enable_html_scraping, core=self.core)
 
 
 def main():

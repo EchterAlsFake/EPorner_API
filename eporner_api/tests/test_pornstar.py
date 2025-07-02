@@ -1,7 +1,7 @@
-from ..eporner_api import Pornstar
+from ..eporner_api import Client
 import time
 url = "https://www.eporner.com/pornstar/riley-reid/"
-pornstar = Pornstar(url)
+pornstar = Client().get_pornstar(url, enable_html_scraping=True)
 
 def test_videos():
     videos = pornstar.videos(pages=1)
