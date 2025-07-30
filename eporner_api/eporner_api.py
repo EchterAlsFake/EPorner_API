@@ -21,7 +21,7 @@ except (ModuleNotFoundError, ImportError):
 
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-from typing import Generator, Union
+from typing import Generator, Union, Optional
 from functools import cached_property
 from base_api.base import BaseCore, setup_logger
 
@@ -57,7 +57,7 @@ HTML Content. See the Documentation for more details.
 
 
 class Video:
-    def __init__(self, url: str, enable_html_scraping: bool = False, core = None):
+    def __init__(self, url: str, enable_html_scraping: bool = False, core: Optional[BaseCore] = None):
         self.core = core
         self.url = url
         self.enable_html = enable_html_scraping
@@ -355,7 +355,7 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
 
 
 class Pornstar:
-    def __init__(self, url: str, enable_html_scraping: bool = False, core = None):
+    def __init__(self, url: str, enable_html_scraping: bool = False, core: Optional[BaseCore] = None):
         self.core = core
         self.url = url
         self.enable_html_scraping = enable_html_scraping
@@ -486,7 +486,7 @@ class Pornstar:
 
 
 class Client:
-    def __init__(self, core = None):
+    def __init__(self, core: Optional[BaseCore] = None):
         self.core = core or BaseCore()
         self.logger = setup_logger(name="EPorner API - [Client]", log_file=None, level=logging.CRITICAL)
 
