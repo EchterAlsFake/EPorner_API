@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Eporner_API"
+version = "1.8.8"
+description = "A Python API for the Porn Site Eporner.com"
+readme = "README.md"
+requires-python = ">=3.6"
+license = { text = "LGPLv3" }
+authors = [
+    { name = "Johannes Habel", email = "EchterAlsFake@proton.me" }
+]
+dependencies = [
+    "bs4",
+    "eaf_base_api",
+]
+classifiers = [
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Programming Language :: Python",
+]
+
+[project.urls]
+Homepage = "https://github.com/EchterAlsFake/EPorner_API"
+
+[project.scripts]
+eporner_api = "eporner_api.eporner_api:main"
+
+[tool.setuptools]
+packages = { find = {} }

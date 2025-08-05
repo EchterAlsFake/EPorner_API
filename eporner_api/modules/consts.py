@@ -39,3 +39,7 @@ REGEX_PORNSTAR_CUP = re.compile(r'<li><span>Cup:</span><div class="cllnumber">(.
 REGEX_PORNSTAR_MEASUREMENTS = re.compile(r'<li><span>Measurements:</span><div class="cllnumber">(.*?)</div></li>')
 REGEX_PORNSTAR_ALIASES = re.compile(r'<ul class="psbioaliases">(.*?)</ul>')
 REGEX_PORNSTAR_BIOGRAPHY = re.compile(r'<div class="psscrol"><p>(.*?)</p></div>')
+
+headers = {
+    "Referer": "https://www.eporner.com/"
+}

@@ -21,9 +21,10 @@ except (ModuleNotFoundError, ImportError):
 
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-from typing import Generator, Union, Optional
 from functools import cached_property
+from typing import Generator, Union, Optional
 from base_api.base import BaseCore, setup_logger
+from base_api.modules.config import RuntimeConfig
 
 """
 Copyright (c) 2024 Johannes Habel
@@ -487,7 +488,11 @@ class Pornstar:
 
 class Client:
     def __init__(self, core: Optional[BaseCore] = None):
-        self.core = core or BaseCore()
+        self.core = core or BaseCore(config=RuntimeConfig())
+        if self.core.session is None:
+            self.core.initialize_session()
+
+        self.core.session.headers = headers
         self.logger = setup_logger(name="EPorner API - [Client]", log_file=None, level=logging.CRITICAL)
 
     def enable_logging(self, log_file: str, level):
