@@ -74,8 +74,8 @@ class Video:
 
             self.html_json_data = self.extract_json_from_html()
 
-    def enable_logging(self, log_file: str, level):
-        self.logger = setup_logger(name="EPorner API - [Video]", log_file=log_file, level=level)
+    def enable_logging(self, log_file: str, level, log_ip: str = None, log_port: int = None):
+        self.logger = setup_logger(name="EPorner API - [Video]", log_file=log_file, level=level, http_ip=log_ip, http_port=log_port)
 
     @cached_property
     def video_id(self) -> str:
@@ -363,8 +363,8 @@ class Pornstar:
         self.logger = setup_logger(name="EPorner API - [Pornstar]", log_file=None, level=logging.CRITICAL)
         self.html_content = self.core.fetch(self.url)
 
-    def enable_logging(self, log_file: str, level):
-        self.logger = setup_logger(name="EPorner API - [Pornstar]", log_file=log_file, level=level)
+    def enable_logging(self, log_file: str, level, log_ip: str = None, log_port: int = None):
+        self.logger = setup_logger(name="EPorner API - [Pornstar]", log_file=log_file, level=level, http_ip=log_ip, http_port=log_port)
 
     def videos(self, pages: int = 0) -> Generator[Video, None, None]:
         if pages == 0:
@@ -492,8 +492,8 @@ class Client:
         self.core.initialize_session(headers)
         self.logger = setup_logger(name="EPorner API - [Client]", log_file=None, level=logging.CRITICAL)
 
-    def enable_logging(self, log_file: str, level):
-        self.logger = setup_logger(name="EPorner API - [Client]", log_file=log_file, level=level)
+    def enable_logging(self, log_file: str, level, log_ip: str = None, log_port: int = None):
+        self.logger = setup_logger(name="EPorner API - [Client]", log_file=log_file, level=level, http_ip=log_ip, http_port=log_port)
 
     def get_video(self, url: str, enable_html_scraping: bool = False) -> Video:
         """Returns the Video object for a given URL"""
