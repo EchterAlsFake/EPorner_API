@@ -334,18 +334,23 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
         self.logger.error(f"Using direct donwload Link: {str(url)}")
         return urljoin("https://eporner.com", str(url))
 
-    def download(self, quality, path, callback=None, mode=Encoding.mp4_h264, no_title=False):
+    def download(self, quality, path, callback=None, mode=Encoding.mp4_h264, no_title=False, use_workaround=False):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
-
-        response_redirect_url = self.core.fetch(self.direct_download_link(quality, mode),
-                                            allow_redirects=True, get_response=True)
 
         if no_title is False:
             path = os.path.join(path, f"{self.title}.mp4")
 
+
+        url = self.direct_download_link(quality, mode)
+        if use_workaround:
+            response_redirect_url = self.core.fetch(self.direct_download_link(quality, mode),
+                                            allow_redirects=True, get_response=True) # Sometimes the site trolls me
+
+            url = response_redirect_url.url
+
         try:
-            self.core.legacy_download(url=str(response_redirect_url.url), callback=callback, path=path)
+            self.core.legacy_download(url=url, callback=callback, path=path)
             return True
 
         except Exception:
