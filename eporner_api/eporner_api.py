@@ -187,7 +187,7 @@ class Video:
         for script in script_tags:
             json_text = script.string.strip()
             try:
-                data = json.loads(json_text)
+                data = json.loads(json_text, strict=False)
 
             except json.decoder.JSONDecodeError:
                 raise InvalidVideo("""
@@ -516,6 +516,7 @@ class Client:
         json_data = json.loads(response)
         for video_ in json_data.get("videos", []):  # Don't know why this works lmao
             id_ = video_["url"]
+            print(id_)
             yield Video(id_, enable_html_scraping, core=self.core)
 
     def get_videos_by_category(self, category: Union[str, Category], enable_html_scraping: bool = False)\
