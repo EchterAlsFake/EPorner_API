@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Eporner_API"
-version = "1.9.1"
+version = "1.9.2"
 description = "A Python API for the Porn Site Eporner.com"
 readme = "README.md"
 requires-python = ">=3.6"
@@ -15,6 +15,9 @@ authors = [
 dependencies = [
     "bs4",
     "eaf_base_api",
+    "lxml",
+    "h2",
+    "brotli"
 ]
 classifiers = [
     "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",

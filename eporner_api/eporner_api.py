@@ -27,7 +27,7 @@ from base_api.base import BaseCore, setup_logger
 from base_api.modules.config import RuntimeConfig
 
 """
-Copyright (c) 2024 Johannes Habel
+Copyright (c) 2024-2025 Johannes Habel
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -179,7 +179,7 @@ class Video:
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        soup = BeautifulSoup(self.html_content, 'html.parser')
+        soup = BeautifulSoup(self.html_content, 'lxml')
         script_tags = soup.find_all('script', {'type': 'application/ld+json'})
 
         combined_data = {}
@@ -299,7 +299,7 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        soup = BeautifulSoup(self.html_content, 'html.parser')
+        soup = BeautifulSoup(self.html_content, 'lxml')
         available_links = []
 
         # Define the quality preferences in descending order
@@ -494,7 +494,8 @@ class Pornstar:
 class Client:
     def __init__(self, core: Optional[BaseCore] = None):
         self.core = core or BaseCore(config=RuntimeConfig())
-        self.core.initialize_session(headers)
+        self.core.initialize_session()
+        self.core.session.headers.update(headers)
         self.logger = setup_logger(name="EPorner API - [Client]", log_file=None, level=logging.CRITICAL)
 
     def enable_logging(self, log_file: str, level, log_ip: str = None, log_port: int = None):
