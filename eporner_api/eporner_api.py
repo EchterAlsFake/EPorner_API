@@ -23,8 +23,8 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from functools import cached_property
 from typing import Generator, Union, Optional
-from base_api.base import BaseCore, setup_logger
 from base_api.modules.config import RuntimeConfig
+from base_api.base import BaseCore, setup_logger, Helper
 
 """
 Copyright (c) 2024-2025 Johannes Habel
@@ -58,7 +58,7 @@ HTML Content. See the Documentation for more details.
 
 
 class Video:
-    def __init__(self, url: str, enable_html_scraping: bool = False, core: Optional[BaseCore] = None):
+    def __init__(self, url: str, enable_html_scraping: bool = True, core: Optional[BaseCore] = None):
         self.core = core
         self.url = url
         self.enable_html = enable_html_scraping
@@ -360,8 +360,9 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
 
 
 
-class Pornstar:
+class Pornstar(Helper):
     def __init__(self, url: str, enable_html_scraping: bool = False, core: Optional[BaseCore] = None):
+        super().__init__(core=core, video=Video)
         self.core = core
         self.url = url
         self.enable_html_scraping = enable_html_scraping
@@ -371,21 +372,18 @@ class Pornstar:
     def enable_logging(self, log_file: str, level, log_ip: str = None, log_port: int = None):
         self.logger = setup_logger(name="EPorner API - [Pornstar]", log_file=log_file, level=level, http_ip=log_ip, http_port=log_port)
 
-    def videos(self, pages: int = 0) -> Generator[Video, None, None]:
+    def videos(self, pages: int = 0, videos_concurrency: int = None, pages_concurrency: int = None) -> Generator[Video, None, None]:
         if pages == 0:
-            pages = int(self.video_amount) / 37 # One page contains 37 videos
+            video_amount = str(self.video_amount).replace(",", "")
+            pages = round(int(video_amount)) / 37 # One page contains 37 videos
 
-        urls = []
-        for page in range(1, pages):
-            response = self.core.fetch(urljoin(self.url + "/", str(page)))
-            extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
-            for url in extraction:
-                url = f"https://www.eporner.com{url}"
-                url = url.replace("EPTHBN/", "")
-                urls.append(url)
+        videos_concurrency = videos_concurrency or self.core.config.videos_concurrency
+        pages_concurrency = pages_concurrency or self.core.config.pages_concurrency
 
-        for url in urls:
-            yield Video(url, enable_html_scraping=self.enable_html_scraping)
+        pages = round(pages) # Dont ask
+        page_urls = [urljoin(f"{self.url}/", str(page)) for page in range(1, pages + 1)]
+        yield from self.iterator(page_urls=page_urls, extractor=extractor, pages_concurrency=pages_concurrency,
+                                 videos_concurrency=videos_concurrency)
 
     @cached_property
     def name(self) -> str:
@@ -491,8 +489,9 @@ class Pornstar:
         return REGEX_PORNSTAR_BIOGRAPHY.search(self.html_content).group(1)
 
 
-class Client:
+class Client(Helper):
     def __init__(self, core: Optional[BaseCore] = None):
+        super().__init__(core, video=Video)
         self.core = core or BaseCore(config=RuntimeConfig())
         self.core.initialize_session()
         self.core.session.headers.update(headers)
@@ -517,19 +516,18 @@ class Client:
         json_data = json.loads(response)
         for video_ in json_data.get("videos", []):  # Don't know why this works lmao
             id_ = video_["url"]
-            print(id_)
             yield Video(id_, enable_html_scraping, core=self.core)
 
-    def get_videos_by_category(self, category: Union[str, Category], enable_html_scraping: bool = False)\
-            -> Generator[Video, None, None]:
-        for page in range(100):
-            self.logger.debug(f"Iterating category page ->: {page}")
-            response = self.core.fetch(f"{ROOT_URL}cat/{category}/{page}")
-            extraction = REGEX_SCRAPE_VIDEO_URLS.findall(response)
-            for url in extraction:
-                url = f"https://www.eporner.com{url}"
-                url = url.replace("EPTHBN/", "")
-                yield Video(url, enable_html_scraping=enable_html_scraping, core=self.core)
+    def get_videos_by_category(self, category: Union[str, Category], enable_html_scraping: bool = False,
+                               videos_concurrency: int = None, pages_concurrency: int = None) -> Generator[Video, None, None]:
+
+        page_urls = [f"{ROOT_URL}cat/{category}/{page}" for page in range(1, 100)]
+
+        videos_concurrency = videos_concurrency or self.core.config.videos_concurrency
+        pages_concurrency = pages_concurrency or self.core.config.pages_concurrency
+        yield from self.iterator(page_urls=page_urls, videos_concurrency=videos_concurrency,
+                                 pages_concurrency=pages_concurrency, extractor=extractor)
+
 
     def get_pornstar(self, url: str, enable_html_scraping: bool = True) -> Pornstar:
         self.logger.info(f"Returning Pornstar object for: {url} HTML Scraping -> {enable_html_scraping}")

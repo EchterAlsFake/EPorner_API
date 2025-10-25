@@ -1,13 +1,18 @@
 from ..eporner_api import Client
 import time
 url = "https://www.eporner.com/pornstar/riley-reid/"
-pornstar = Client().get_pornstar(url, enable_html_scraping=True)
+from base_api import BaseCore
+core = BaseCore()
+core.config.pages_concurrency = 1
+core.config.videos_concurrency = 1
+
+pornstar = Client(core).get_pornstar(url, enable_html_scraping=True)
+
 
 def test_videos():
     videos = pornstar.videos(pages=1)
 
     for idx, video in enumerate(videos):
-        time.sleep(5) # Lmao
         assert isinstance(video.title, str) and len(video.title) > 3
         if idx == 5:
             break

@@ -1,12 +1,16 @@
 import time
 
 from ..eporner_api import Client, Category
+from base_api import BaseCore
+core = BaseCore()
+core.config.pages_concurrency = 1
+core.config.videos_concurrency = 1
 
 
 def test_category():
-    videos_1 = Client().get_videos_by_category(category=Category.JAPANESE)
-    videos_2 = Client().get_videos_by_category(category=Category.HD)
-    videos_3 = Client().get_videos_by_category(category=Category.BLONDE)
+    videos_1 = Client(core).get_videos_by_category(category=Category.JAPANESE)
+    videos_2 = Client(core).get_videos_by_category(category=Category.HD)
+    videos_3 = Client(core).get_videos_by_category(category=Category.BLONDE)
 
     for idx, video in enumerate(videos_1):
         if idx == 3:

@@ -43,3 +43,14 @@ REGEX_PORNSTAR_BIOGRAPHY = re.compile(r'<div class="psscrol"><p>(.*?)</p></div>'
 headers = {
     "Referer": "https://www.eporner.com/"
 }
+
+
+def extractor(content: str):
+    video_urls = []
+    extraction = REGEX_SCRAPE_VIDEO_URLS.findall(content)
+    for url in extraction:
+        url = f"https://www.eporner.com{url}"
+        url = url.replace("EPTHBN/", "")
+        video_urls.append(url)
+
+    return video_urls
