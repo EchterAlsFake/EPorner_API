@@ -500,14 +500,14 @@ class Client(Helper):
     def enable_logging(self, log_file: str, level, log_ip: str = None, log_port: int = None):
         self.logger = setup_logger(name="EPorner API - [Client]", log_file=log_file, level=level, http_ip=log_ip, http_port=log_port)
 
-    def get_video(self, url: str, enable_html_scraping: bool = False) -> Video:
+    def get_video(self, url: str, enable_html_scraping: bool = True) -> Video:
         """Returns the Video object for a given URL"""
         self.logger.info(f"Returning video object for: {url} HTML Scraping -> {enable_html_scraping}")
         return Video(url, enable_html_scraping=enable_html_scraping, core=self.core)
 
     def search_videos(self, query: str, sorting_gay: Union[str, Gay], sorting_order: Union[str, Order],
                       sorting_low_quality: Union[str, LowQuality],
-                      page: int, per_page: int, enable_html_scraping: bool = False) -> Generator[Video, None, None]:
+                      page: int, per_page: int, enable_html_scraping: bool = True) -> Generator[Video, None, None]:
 
         response = self.core.fetch(f"{ROOT_URL}{API_SEARCH}?query={query}&per_page={per_page}&%page={page}"
                                 f"&thumbsize=medium&order={sorting_order}&gay={sorting_gay}&lq="
