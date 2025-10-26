@@ -22,8 +22,8 @@ except (ModuleNotFoundError, ImportError):
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from functools import cached_property
-from typing import Generator, Union, Optional
 from base_api.modules.config import RuntimeConfig
+from typing import Generator, Union, Optional, List
 from base_api.base import BaseCore, setup_logger, Helper
 
 """
@@ -55,6 +55,40 @@ All methods which use the Webmasters API are in compliance with the ToS. Those m
 If you still need additional functionalities and information from videos / Eporner.com you can enable the use of 
 HTML Content. See the Documentation for more details.
 """
+
+
+
+def _normalize_quality_value(q) -> Union[str, int]:
+    if isinstance(q, int):
+        return q
+    s = str(q).lower().strip()
+    if s in {"best", "half", "worst"}:
+        return s
+    m = re.search(r'(\d{3,4})', s)
+    if m:
+        return int(m.group(1))
+    raise ValueError(f"Invalid quality: {q}")
+
+
+def _choose_quality_from_list(available: List[str | int], target: Union[str, int]):
+    # available like ["240", "360", "480", "720", "1080"]
+    av = sorted({int(x) for x in available})
+    if isinstance(target, str):
+        if target == "best":
+            return av[-1]
+        if target == "worst":
+            return av[0]
+        if target == "half":
+            return av[len(av) // 2]
+        raise ValueError("Invalid label.")
+    # numeric: highest ≤ target, else closest
+    le = [h for h in av if h <= target]
+    if le:
+        return le[-1]
+    # fallback closest (ties -> higher)
+    return min(av, key=lambda h: (abs(h - target), -h))
+
+
 
 
 class Video:
@@ -291,8 +325,8 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
 
     def direct_download_link(self, quality, mode) -> str:
         """
-        Returns the direct download URL for a given quality
-        :param quality: 'best', 'half', 'worst', or a specific resolution like '720p'
+        Returns the direct download URL for a given quality (best/half/worst or a specific resolution).
+        :param quality: 'best', 'half', 'worst', or a specific resolution like '720', '720p', 1080, etc.
         :param mode: The mode to filter links by (e.g., 'video')
         :return: str
         """
@@ -300,39 +334,45 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
         soup = BeautifulSoup(self.html_content, 'lxml')
-        available_links = []
+        quality_to_url: dict[int, str] = {}
 
-        # Define the quality preferences in descending order
-        quality_preferences = ['2160p', '1440p', '1080p', '720p', '480p', '360p', '240p']
+        # Extract resolutions from link text or href (e.g., "1080p", "720", etc.)
+        # Accept any 3–4 digit height optionally followed by 'p'
+        _res_rx = re.compile(r'(?<!\d)(\d{3,4})p?(?!\d)')
 
-        # Search for all <a> tags and collect links for the specified mode
+        mode_lc = str(mode).lower().strip()
+
         for a_tag in soup.find_all('a', href=True):
-            link_text = a_tag.text.lower()
+            # Combine visible text + href for matching
+            text = " ".join(a_tag.stripped_strings).lower()
             href = a_tag['href']
-            # Filter links by mode
-            if str(mode.lower()) in link_text:
-                for preference in quality_preferences:
-                    if preference in link_text:
-                        available_links.append((preference, href))
-                        break
+            haystack = f"{text} {href.lower()}"
 
-        reversed_links = list(reversed(available_links))
+            # Filter by mode (same semantics as your original code)
+            if mode_lc not in haystack:
+                continue
 
-        if quality == "best":
-            quality, url = reversed_links[0]
+            m = _res_rx.search(haystack)
+            if not m:
+                continue
 
-        elif quality == "half":
-            index_to_use = round(len(available_links) / 2)
-            quality, url = reversed_links[index_to_use]
+            height = int(m.group(1))  # e.g., 1080
+            quality_to_url[height] = href  # last one wins; order doesn't matter
 
-        elif quality == "worst":
-            quality, url = reversed_links[-1]
+        if not quality_to_url:
+            raise NotAvailable(f"No URLs available for mode '{mode}'")
 
-        else:
-            raise "No URLs available? Please report that"
+        # Choose the appropriate height using your helpers
+        available_heights = sorted(quality_to_url.keys())  # e.g., [240, 360, 480, 720, 1080]
+        qn = _normalize_quality_value(quality)  # -> 'best' | 'half' | 'worst' | int
+        chosen_height = _choose_quality_from_list(available_heights, qn)
 
-        self.logger.error(f"Using direct donwload Link: {str(url)}")
-        return urljoin("https://eporner.com", str(url))
+        # Map back to URL and return absolute URL
+        chosen_url = quality_to_url[chosen_height]
+        full_url = urljoin("https://eporner.com", str(chosen_url))
+
+        self.logger.info(f"Using direct download link: {full_url} ({chosen_height}p)")
+        return full_url
 
     def download(self, quality, path, callback=None, mode=Encoding.mp4_h264, no_title=False, use_workaround=False):
         if not self.enable_html:

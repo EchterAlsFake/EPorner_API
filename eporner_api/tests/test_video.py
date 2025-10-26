@@ -65,7 +65,7 @@ def test_author():
 
 
 def test_direct_download_url():
-    assert isinstance(video.direct_download_link(quality="best", mode=Encoding.mp4_h264), str)
+    assert isinstance(video.direct_download_link(quality=2160, mode=Encoding.mp4_h264), str)
     assert isinstance(video.direct_download_link(quality="half", mode=Encoding.mp4_h264), str)
     assert isinstance(video.direct_download_link(quality="worst", mode=Encoding.mp4_h264), str)
     try:
