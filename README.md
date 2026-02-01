@@ -6,31 +6,33 @@
     <a href="https://echteralsfake.me/ci/eporner_api/badge.svg"><img src="https://echteralsfake.me/ci/EPorner_API/badge.svg" alt="API Tests"/></a>
 </div>
 
-# Description
-
-EPorner API is an API for EPorner, which allows you to fetch information from videos using the official V2 API.
-
 # Disclaimer
-> Some modules of this API are in violation of the ToS of Eporner.com
- 
-> See Documentation for details about this!
-
 > [!IMPORTANT]
-> Copyright Information: I have no intention of stealing copyright protected content or slowing down
-> a website. Contact me at my E-Mail, and I'll take this Repository immediately offline. (EchterAlsFake@proton.me)
+> This is an unofficial and unaffiliated project. Please read the full disclaimer before use:
+> **[DISCLAIMER.md](https://github.com/EchterAlsFake/API_Docs/blob/master/Disclaimer.md)**
+>
+> By using this project you agree to comply with the target site’s rules, copyright/licensing requirements,
+> and applicable laws. Do not use it to bypass access controls or scrape at disruptive rates.
 
 # Features
-> Webmasters API
-> - 
-> - Information about videos
-> - Search for videos
-> - Search using filters
-> 
-> HTML Content
-> - 
-> - Even more information about videos
-> - Downloading videos
+- Fetch videos + metadata
+- Download videos
+- Fetch Pornstars
+- Search for videos
+- Fetch videos by category
+- Built-in caching
+- Easy interface
+- Great type hinting
+- Proxy support
+- Very customizable
 
+# Supported Platforms
+This API has been tested and confirmed working on:
+
+- Windows 11 (x64) 
+- macOS Sequoia (x86_64)
+- Linux (Arch) (x86_64)
+- Android 16 (aarch64)
 
 # Quickstart
 
@@ -89,4 +91,4 @@ Pull requests are also welcome.
 
 # License
 Licensed under the LGPLv3 License
-<br>Copyright (C) 2023–2025 Johannes Habel
+<br>Copyright (C) 2023–2026 Johannes Habel
