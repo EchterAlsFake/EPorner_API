@@ -19,6 +19,14 @@ except (ModuleNotFoundError, ImportError):
     from modules.sorting import *
     from modules.progressbar import *
 
+try:
+    import lxml
+    parser = "lxml"
+
+except (ModuleNotFoundError, ImportError):
+    parser = "html.parser"
+    
+
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from functools import cached_property
@@ -213,7 +221,7 @@ class Video:
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        soup = BeautifulSoup(self.html_content, 'lxml')
+        soup = BeautifulSoup(self.html_content, parser)
         script_tags = soup.find_all('script', {'type': 'application/ld+json'})
 
         combined_data = {}
@@ -333,7 +341,7 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        soup = BeautifulSoup(self.html_content, 'lxml')
+        soup = BeautifulSoup(self.html_content, parser)
         quality_to_url: dict[int, str] = {}
 
         # Extract resolutions from link text or href (e.g., "1080p", "720", etc.)
