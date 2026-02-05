@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-full = ["lxml", "httpx[http2]", "httpx[socks5]"]
+full = ["lxml", "httpx[http2]", "httpx[socks]"]
 
 [project.urls]
 Homepage = "https://github.com/EchterAlsFake/EPorner_API"
