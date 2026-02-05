@@ -22,7 +22,6 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-av = ["av; python_version >= '3.10'"]
 full = ["lxml", "httpx[http2]", "httpx[socks5]"]
 
 [project.urls]
