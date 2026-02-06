@@ -5,6 +5,7 @@ import os.path
 import logging
 import argparse
 import traceback
+import threading
 
 try:
     from .modules.consts import *
@@ -383,7 +384,8 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
         self.logger.info(f"Using direct download link: {full_url} ({chosen_height}p)")
         return full_url
 
-    def download(self, quality, path, callback=None, mode=Encoding.mp4_h264, no_title=False, use_workaround=False):
+    def download(self, quality, path, callback=None, mode=Encoding.mp4_h264, no_title=False, use_workaround=False,
+                 stop_event: threading.Event = None):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
@@ -399,7 +401,7 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
             url = response_redirect_url.url
 
         try:
-            self.core.legacy_download(url=url, callback=callback, path=path)
+            self.core.legacy_download(url=url, callback=callback, path=path, stop_event=stop_event)
             return True
 
         except Exception:
