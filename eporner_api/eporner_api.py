@@ -1,3 +1,4 @@
+from __future__ import annotations
 import html
 import json
 import os.path
@@ -35,7 +36,7 @@ from typing import Generator, Union, Optional, List
 from base_api.base import BaseCore, setup_logger, Helper
 
 """
-Copyright (c) 2024-2025 Johannes Habel
+Copyright (c) 2024-2026 Johannes Habel
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
