@@ -333,13 +333,7 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
                 self.logger.error("Couldn't find author. Please report this!")
                 return None
 
-    def direct_download_link(self, quality, mode) -> str:
-        """
-        Returns the direct download URL for a given quality (best/half/worst or a specific resolution).
-        :param quality: 'best', 'half', 'worst', or a specific resolution like '720', '720p', 1080, etc.
-        :param mode: The mode to filter links by (e.g., 'video')
-        :return: str
-        """
+    def _direct_download_quality_map(self, mode) -> dict[int, str]:
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
@@ -369,6 +363,25 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
             height = int(m.group(1))  # e.g., 1080
             quality_to_url[height] = href  # last one wins; order doesn't matter
 
+        return quality_to_url
+
+    def video_qualities(self, mode=Encoding.mp4_h264) -> list:
+        """
+        Returns the available direct download qualities for a given mode.
+        :param mode: The mode to filter links by (e.g., 'video')
+        :return: list
+        """
+        quality_to_url = self._direct_download_quality_map(mode)
+        return sorted(quality_to_url.keys())
+
+    def direct_download_link(self, quality, mode) -> str:
+        """
+        Returns the direct download URL for a given quality (best/half/worst or a specific resolution).
+        :param quality: 'best', 'half', 'worst', or a specific resolution like '720', '720p', 1080, etc.
+        :param mode: The mode to filter links by (e.g., 'video')
+        :return: str
+        """
+        quality_to_url = self._direct_download_quality_map(mode)
         if not quality_to_url:
             raise NotAvailable(f"No URLs available for mode '{mode}'")
 
