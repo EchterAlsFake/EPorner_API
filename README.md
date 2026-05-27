@@ -15,6 +15,7 @@
 > and applicable laws. Do not use it to bypass access controls or scrape at disruptive rates.
 
 # Features
+- Asynchronous
 - Fetch videos + metadata
 - Download videos
 - Fetch Pornstars
@@ -23,8 +24,17 @@
 - Built-in caching
 - Easy interface
 - Great type hinting
-- Proxy support
-- Very customizable
+
+#### Networking Features
+- HTTP 2.0 / HTTP 3.0
+- Browser impersonation
+- Custom JA3
+- All proxy types
+- Proxy authentication
+- Speed Limit
+- DNS over HTTPS
+- And even more...
+- All of this is configurable and can be adjusted as you like!
 
 # Supported Platforms
 This API has been tested and confirmed working on:
@@ -50,19 +60,25 @@ pip install --upgrade Eporner-API
 pip install --upgrade git+https://github.com/EchterAlsFake/EPorner_API.git
 ```
 
-
 ```python
+import asyncio
 from eporner_api import Client
 # Initialize a Client object
-client = Client()
 
-# Fetch a video
-video_object = client.get_video("<insert_url_here>")  # Can also be a Video ID
+async def do_something():
+    client = Client()
 
-# Search for videos
-videos = client.search_videos(query="Your query here", ..sortings..) # See Documentation!
-for video in videos:
-    print(video.title)
+    # Fetch a video
+    video_object = await client.get_video("<insert_url_here>")  # Can also be a Video ID
+    print(video_object.title)
+
+    # Search for videos
+    videos = client.search_videos(query="Your query here",..sortings..)  # See Documentation!
+    async for video in videos:
+        print(video.title)
+
+
+asyncio.run(do_something())
 
 # SEE DOCUMENTATION FOR MORE
 ```
