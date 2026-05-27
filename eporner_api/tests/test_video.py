@@ -1,70 +1,26 @@
+import pytest
 from ..eporner_api import Client, Encoding, NotAvailable
-import time
-url = "https://www.eporner.com/video-bTwP6vsFj5U/human-anal-sex-toy/"
-video = Client().get_video(url, enable_html_scraping=True)
-time.sleep(5)  # Lmao
 
-def test_title():
+@pytest.mark.asyncio
+async def test_video():
+    url = "https://www.eporner.com/video-bTwP6vsFj5U/human-anal-sex-toy/"
+    video = await Client().get_video(url, enable_html_scraping=True)
     assert isinstance(video.title, str) and len(video.title) > 0
-
-
-def test_video_id():
     assert isinstance(video.video_id, str) and len(video.video_id) > 0
-
-
-def test_tags():
     assert isinstance(video.tags, list) and len(video.tags) > 0
-
-
-def test_views():
     assert isinstance(video.views, int) and video.views > 0
-
-
-def test_rate():
     assert isinstance(video.rate, str) and len(video.rate) > 0
-
-
-def test_publish_date():
     assert isinstance(video.publish_date, str) and len(video.publish_date) > 0
-
-
-def test_length_seconds():
-    assert isinstance(video.length, int) > 0
-
-
-def test_length_minutes():
+    assert isinstance(video.length, int) and video.length > 0
     assert isinstance(video.length_minutes, str) and len(video.length_minutes) > 0
-
-
-def test_embed_url():
     assert isinstance(video.embed_url, str) and len(video.embed_url) > 0
-
-
-def test_thumbnails():
     assert isinstance(video.thumbnail, str) and len(video.thumbnail) > 0
-
-
-def test_bitrate():
     assert isinstance(video.bitrate, str) and len(video.bitrate) > 0
-
-
-def test_source_video_url():
     assert isinstance(video.source_video_url, str) and len(video.source_video_url) > 0
-
-
-def test_rating():
     assert isinstance(video.rating, str) and len(video.rating) > 0
-
-
-def test_rating_count():
     assert isinstance(video.rating_count, str) and len(video.rating_count) > 0
-
-
-def test_author():
     assert isinstance(video.author, str) and len(video.author) > 0
 
-
-def test_direct_download_url():
     assert isinstance(video.direct_download_link(quality=2160, mode=Encoding.mp4_h264), str)
     assert isinstance(video.direct_download_link(quality="half", mode=Encoding.mp4_h264), str)
     assert isinstance(video.direct_download_link(quality="worst", mode=Encoding.mp4_h264), str)
@@ -72,6 +28,5 @@ def test_direct_download_url():
         assert isinstance(video.direct_download_link(quality="best", mode=Encoding.av1), str)
         assert isinstance(video.direct_download_link(quality="half", mode=Encoding.av1), str)
         assert isinstance(video.direct_download_link(quality="worst", mode=Encoding.av1), str)
-
     except NotAvailable:
         pass

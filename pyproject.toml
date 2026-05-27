@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "Eporner_API"
-version = "1.9.7"
+version = "2.0"
 description = "A Python API for the Porn Site Eporner.com"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.9" # 3.9 due to httpx requirements
@@ -15,14 +15,14 @@ authors = [
 ]
 dependencies = [
     "bs4",
-    "eaf_base_api",
+    "eaf-base-api",
 ]
 classifiers = [
     "Programming Language :: Python",
 ]
 
 [project.optional-dependencies]
-full = ["lxml", "httpx[http2]", "httpx[socks]"]
+full = ["lxml"]
 
 [project.urls]
 Homepage = "https://github.com/EchterAlsFake/EPorner_API"

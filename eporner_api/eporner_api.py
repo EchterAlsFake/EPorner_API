@@ -3,6 +3,7 @@ import html
 import json
 import os.path
 import logging
+import asyncio
 import argparse
 import traceback
 import threading
@@ -33,7 +34,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from functools import cached_property
 from base_api.modules.config import RuntimeConfig
-from typing import Generator, Union, Optional, List
+from typing import AsyncGenerator, Generator, Union, Optional, List
 from base_api.base import BaseCore, setup_logger, Helper
 
 """
@@ -102,21 +103,27 @@ def _choose_quality_from_list(available: List[str | int], target: Union[str, int
 
 
 class Video:
-    def __init__(self, url: str, enable_html_scraping: bool = True, core: Optional[BaseCore] = None):
+    def __init__(self, url: str, enable_html_scraping: bool = True, core: Optional[BaseCore] = None, html_content=None):
         self.core = core
         self.url = url
         self.enable_html = enable_html_scraping
-        self.html_content = None
+        self.html_content = html_content
         self.logger = setup_logger(name="EPorner API - [Video]", log_file=None, level=logging.CRITICAL)
-        self.json_data = self.raw_json_data()
+        self.json_data = {}
+        self.html_json_data = {}
+
+    async def init(self):
+        self.json_data = await self.get_raw_json_data()
         if self.enable_html:
-            self.request_html_content()
+            if not self.html_content:
+                await self.request_html_content()
             is_removed = REGEX_VIDEO_DISABLED.findall(self.html_content)
             for _ in is_removed:
                 if _ == "deletedfile":
                     raise VideoDisabled("Video has been removed because of a Copyright claim")
 
             self.html_json_data = self.extract_json_from_html()
+        return self
 
     def enable_logging(self, log_file: str, level, log_ip: str = None, log_port: int = None):
         self.logger = setup_logger(name="EPorner API - [Video]", log_file=log_file, level=level, http_ip=log_ip, http_port=log_port)
@@ -144,13 +151,13 @@ class Video:
         else:
             return self.url  # Assuming this is a video ID (hopefully)
 
-    def raw_json_data(self):
+    async def get_raw_json_data(self):
         """
         Uses the V2 API to retrieve information from a video
         :return:
         """
 
-        data = self.core.fetch(f"{ROOT_URL}{API_VIDEO_ID}?id={self.video_id}&thumbsize=medium&format=json")
+        data = await self.core.fetch(f"{ROOT_URL}{API_VIDEO_ID}?id={self.video_id}&thumbsize=medium&format=json")
         parsed_data = json.loads(data)
         return parsed_data
 
@@ -212,11 +219,11 @@ class Video:
     The following methods are using HTML scraping. This is against the ToS from EPorner.com!
     """
 
-    def request_html_content(self):
+    async def request_html_content(self):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
 
-        self.html_content = html.unescape(self.core.fetch(self.url))
+        self.html_content = html.unescape(await self.core.fetch(self.url))
 
 
     def extract_json_from_html(self):
@@ -397,7 +404,7 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
         self.logger.info(f"Using direct download link: {full_url} ({chosen_height}p)")
         return full_url
 
-    def download(self, quality, path, callback=None, mode=Encoding.mp4_h264, no_title=False, use_workaround=False,
+    async def download(self, quality, path, callback=None, mode=Encoding.mp4_h264, no_title=False, use_workaround=False,
                  stop_event: threading.Event = None):
         if not self.enable_html:
             raise HTML_IS_DISABLED("HTML content is disabled! See Documentation for more details")
@@ -408,13 +415,13 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
 
         url = self.direct_download_link(quality, mode)
         if use_workaround:
-            response_redirect_url = self.core.fetch(self.direct_download_link(quality, mode),
+            response_redirect_url = await self.core.fetch(self.direct_download_link(quality, mode),
                                             allow_redirects=True, get_response=True) # Sometimes the site trolls me
 
             url = response_redirect_url.url
 
         try:
-            self.core.legacy_download(url=url, callback=callback, path=path, stop_event=stop_event)
+            await self.core.legacy_download(url=url, callback=callback, path=path, stop_event=stop_event)
             return True
 
         except Exception:
@@ -425,18 +432,23 @@ JSONDecodeError: I need your help to fix this error. Please report the URL you'v
 
 
 class Pornstar(Helper):
-    def __init__(self, url: str, enable_html_scraping: bool = False, core: Optional[BaseCore] = None):
+    def __init__(self, url: str, enable_html_scraping: bool = False, core: Optional[BaseCore] = None, html_content=None):
         super().__init__(core=core, video=Video)
         self.core = core
         self.url = url
         self.enable_html_scraping = enable_html_scraping
         self.logger = setup_logger(name="EPorner API - [Pornstar]", log_file=None, level=logging.CRITICAL)
-        self.html_content = self.core.fetch(self.url)
+        self.html_content = html_content
+        
+    async def init(self):
+        if not self.html_content:
+            self.html_content = await self.core.fetch(self.url)
+        return self
 
     def enable_logging(self, log_file: str, level, log_ip: str = None, log_port: int = None):
         self.logger = setup_logger(name="EPorner API - [Pornstar]", log_file=log_file, level=level, http_ip=log_ip, http_port=log_port)
 
-    def videos(self, pages: int = 0, videos_concurrency: int = None, pages_concurrency: int = None) -> Generator[Video, None, None]:
+    async def videos(self, pages: int = 0, videos_concurrency: int = None, pages_concurrency: int = None) -> AsyncGenerator[Video, None]:
         if pages == 0:
             video_amount = str(self.video_amount).replace(",", "")
             pages = round(int(video_amount)) / 37 # One page contains 37 videos
@@ -446,8 +458,9 @@ class Pornstar(Helper):
 
         pages = round(pages) # Dont ask
         page_urls = [urljoin(f"{self.url}/", str(page)) for page in range(1, pages + 1)]
-        yield from self.iterator(page_urls=page_urls, extractor=extractor, pages_concurrency=pages_concurrency,
-                                 videos_concurrency=videos_concurrency)
+        async for video in self.iterator(page_urls=page_urls, extractor=extractor, pages_concurrency=pages_concurrency,
+                                 videos_concurrency=videos_concurrency):
+            yield await video.init()
 
     @cached_property
     def name(self) -> str:
@@ -564,41 +577,45 @@ class Client(Helper):
     def enable_logging(self, log_file: str, level, log_ip: str = None, log_port: int = None):
         self.logger = setup_logger(name="EPorner API - [Client]", log_file=log_file, level=level, http_ip=log_ip, http_port=log_port)
 
-    def get_video(self, url: str, enable_html_scraping: bool = True) -> Video:
+    async def get_video(self, url: str, enable_html_scraping: bool = True) -> Video:
         """Returns the Video object for a given URL"""
         self.logger.info(f"Returning video object for: {url} HTML Scraping -> {enable_html_scraping}")
-        return Video(url, enable_html_scraping=enable_html_scraping, core=self.core)
+        video = Video(url, enable_html_scraping=enable_html_scraping, core=self.core)
+        return await video.init()
 
-    def search_videos(self, query: str, sorting_gay: Union[str, Gay], sorting_order: Union[str, Order],
+    async def search_videos(self, query: str, sorting_gay: Union[str, Gay], sorting_order: Union[str, Order],
                       sorting_low_quality: Union[str, LowQuality],
-                      page: int, per_page: int, enable_html_scraping: bool = True) -> Generator[Video, None, None]:
+                      page: int, per_page: int, enable_html_scraping: bool = True) -> AsyncGenerator[Video, None]:
 
-        response = self.core.fetch(f"{ROOT_URL}{API_SEARCH}?query={query}&per_page={per_page}&%page={page}"
+        response = await self.core.fetch(f"{ROOT_URL}{API_SEARCH}?query={query}&per_page={per_page}&%page={page}"
                                 f"&thumbsize=medium&order={sorting_order}&gay={sorting_gay}&lq="
                                 f"{sorting_low_quality}&format=json")
 
         json_data = json.loads(response)
         for video_ in json_data.get("videos", []):  # Don't know why this works lmao
             id_ = video_["url"]
-            yield Video(id_, enable_html_scraping, core=self.core)
+            video = Video(id_, enable_html_scraping, core=self.core)
+            yield await video.init()
 
-    def get_videos_by_category(self, category: Union[str, Category], enable_html_scraping: bool = False,
-                               videos_concurrency: int = None, pages_concurrency: int = None) -> Generator[Video, None, None]:
+    async def get_videos_by_category(self, category: Union[str, Category], enable_html_scraping: bool = False,
+                               videos_concurrency: int = None, pages_concurrency: int = None) -> AsyncGenerator[Video, None]:
 
         page_urls = [f"{ROOT_URL}cat/{category}/{page}" for page in range(1, 100)]
 
         videos_concurrency = videos_concurrency or self.core.config.videos_concurrency
         pages_concurrency = pages_concurrency or self.core.config.pages_concurrency
-        yield from self.iterator(page_urls=page_urls, videos_concurrency=videos_concurrency,
-                                 pages_concurrency=pages_concurrency, extractor=extractor)
+        async for video in self.iterator(page_urls=page_urls, videos_concurrency=videos_concurrency,
+                                 pages_concurrency=pages_concurrency, extractor=extractor):
+            yield await video.init()
 
 
-    def get_pornstar(self, url: str, enable_html_scraping: bool = True) -> Pornstar:
+    async def get_pornstar(self, url: str, enable_html_scraping: bool = True) -> Pornstar:
         self.logger.info(f"Returning Pornstar object for: {url} HTML Scraping -> {enable_html_scraping}")
-        return Pornstar(url, enable_html_scraping, core=self.core)
+        pornstar = Pornstar(url, enable_html_scraping, core=self.core)
+        return await pornstar.init()
 
 
-def main():
+async def run_main():
     parser = argparse.ArgumentParser(description="API Command Line Interface")
     parser.add_argument("--download", metavar="URL (str)", type=str, help="URL to download from")
     parser.add_argument("--quality", metavar="best,half,worst", type=str, help="The video quality (best,half,worst)",
@@ -615,8 +632,8 @@ def main():
 
     if args.download:
         client = Client()
-        video = client.get_video(args.download, enable_html_scraping=True)
-        video.download(quality=args.quality, path=args.output, no_title=no_title)
+        video = await client.get_video(args.download, enable_html_scraping=True)
+        await video.download(quality=args.quality, path=args.output, no_title=no_title)
 
     if args.file:
         videos = []
@@ -626,11 +643,27 @@ def main():
             content = file.read().splitlines()
 
         for url in content:
-            videos.append(client.get_video(url, enable_html_scraping=True))
+            videos.append(await client.get_video(url, enable_html_scraping=True))
 
         for video in videos:
-            video.download(quality=args.quality, path=args.output, no_title=no_title)
+            await video.download(quality=args.quality, path=args.output, no_title=no_title)
 
+
+async def xd():
+    core = BaseCore()
+    core.enable_logging(level=logging.DEBUG)
+    client = Client(core=core)
+    query = "Mia Khalifa"
+
+    videos = client.search_videos(query, page=2, per_page=20, sorting_gay=Gay.only_gay_content,
+                                      sorting_order=Order.latest,
+                                      sorting_low_quality=LowQuality.only_low_quality_content)
+    async for video in videos:
+        assert len(video.title) > 0
+
+
+def main():
+    asyncio.run(xd())
 
 if __name__ == "__main__":
     main()

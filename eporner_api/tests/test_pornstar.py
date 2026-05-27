@@ -1,27 +1,28 @@
+import pytest
 from ..eporner_api import Client
-import time
-url = "https://www.eporner.com/pornstar/riley-reid/"
 from base_api import BaseCore
-core = BaseCore()
-core.config.pages_concurrency = 1
-core.config.videos_concurrency = 1
 
-pornstar = Client(core).get_pornstar(url, enable_html_scraping=True)
+@pytest.mark.asyncio
+async def test_pornstar():
+    url = "https://www.eporner.com/pornstar/riley-reid/"
+    core = BaseCore()
+    core.config.pages_concurrency = 1
+    core.config.videos_concurrency = 1
+    pornstar = await Client(core).get_pornstar(url, enable_html_scraping=True)
 
-
-def test_videos():
     videos = pornstar.videos(pages=1)
-
-    for idx, video in enumerate(videos):
+    
+    idx = 0
+    async for video in videos:
         assert isinstance(video.title, str) and len(video.title) > 3
         if idx == 5:
             break
+        idx += 1
 
-def test_information():
     assert isinstance(pornstar.pornstar_rank, str) and len(pornstar.pornstar_rank) >= 1
     assert isinstance(pornstar.aliases, list) and len(pornstar.aliases) > 1
     assert isinstance(pornstar.biography, str) and len(pornstar.biography) > 10
-    assert isinstance(pornstar.age, str) and len(pornstar.age) >= 2  # would be weird if this is 1-9 lmao (just kidding)
+    assert isinstance(pornstar.age, str) and len(pornstar.age) >= 2
     assert isinstance(pornstar.cup, str) and len(pornstar.cup) >= 1
     assert isinstance(pornstar.country, str) and len(pornstar.country) >= 2
     assert isinstance(pornstar.weight, str) and len(pornstar.weight) >= 2
