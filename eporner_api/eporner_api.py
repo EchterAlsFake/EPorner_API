@@ -649,21 +649,8 @@ async def run_main():
             await video.download(quality=args.quality, path=args.output, no_title=no_title)
 
 
-async def xd():
-    core = BaseCore()
-    core.enable_logging(level=logging.DEBUG)
-    client = Client(core=core)
-    query = "Mia Khalifa"
-
-    videos = client.search_videos(query, page=2, per_page=20, sorting_gay=Gay.only_gay_content,
-                                      sorting_order=Order.latest,
-                                      sorting_low_quality=LowQuality.only_low_quality_content)
-    async for video in videos:
-        assert len(video.title) > 0
-
-
 def main():
-    asyncio.run(xd())
+    asyncio.run(run_main())
 
 if __name__ == "__main__":
     main()
