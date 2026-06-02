@@ -3,7 +3,7 @@ from ..eporner_api import Client, Encoding, NotAvailable
 
 @pytest.mark.asyncio
 async def test_video():
-    url = "https://www.eporner.com/video-bTwP6vsFj5U/human-anal-sex-toy/"
+    url = "https://www.eporner.com/video-pDRNfJoN7dN/granny-with-young-guy/"
     video = await Client().get_video(url, enable_html_scraping=True)
     assert isinstance(video.title, str) and len(video.title) > 0
     assert isinstance(video.video_id, str) and len(video.video_id) > 0
