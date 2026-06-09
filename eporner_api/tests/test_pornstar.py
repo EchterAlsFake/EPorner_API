@@ -6,8 +6,8 @@ from base_api import BaseCore
 async def test_pornstar():
     url = "https://www.eporner.com/pornstar/riley-reid/"
     core = BaseCore()
-    core.config.pages_concurrency = 1
-    core.config.videos_concurrency = 1
+    core.configuration.pages_concurrency = 1
+    core.configuration.videos_concurrency = 1
     pornstar = await Client(core).get_pornstar(url, enable_html_scraping=True)
 
     videos = pornstar.videos(pages=1)

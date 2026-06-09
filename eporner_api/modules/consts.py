@@ -1,8 +1,8 @@
 import re
 
 # ROOT URLs
-ROOT_URL = "https://eporner.com/"
-PORNSTAR = "https://eporner.com/pornstar/"
+ROOT_URL = "https://www.eporner.com/"
+PORNSTAR = "https://www.eporner.com/pornstar/"
 
 # API Calls
 API_V2 = "api/v2/"

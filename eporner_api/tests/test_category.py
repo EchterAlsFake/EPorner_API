@@ -5,8 +5,8 @@ from base_api import BaseCore
 @pytest.mark.asyncio
 async def test_category():
     core = BaseCore()
-    core.config.pages_concurrency = 1
-    core.config.videos_concurrency = 1
+    core.configuration.pages_concurrency = 1
+    core.configuration.videos_concurrency = 1
     
     videos_1 = Client(core).get_videos_by_category(category=Category.JAPANESE)
     videos_2 = Client(core).get_videos_by_category(category=Category.HD)
