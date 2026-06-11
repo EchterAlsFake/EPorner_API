@@ -31,7 +31,7 @@ except (ModuleNotFoundError, ImportError):
     
 
 from bs4 import BeautifulSoup
-from curl_cffi import Response
+from curl_cffi import Response, AsyncSession
 from urllib.parse import urljoin
 from typing import AsyncGenerator
 from functools import cached_property
@@ -574,9 +574,8 @@ class Client(Helper):
     def __init__(self, core: BaseCore = BaseCore(RuntimeConfig())):
         super().__init__(core, video_constructor=Video)
         self.core = core
-        self.core.configuration.request_delay = 0.5
-        self.core.configuration.http_version="v2"
         self.core.initialize_session()
+        assert isinstance(self.core.session, AsyncSession)
         self.core.session.headers.update(headers)
         self.logger = setup_logger(name="EPorner API - [Client]", log_file=None, level=logging.CRITICAL)
 

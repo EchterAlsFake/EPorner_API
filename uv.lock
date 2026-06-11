@@ -153,15 +153,15 @@ wheels = [
 
 [[package]]
 name = "eaf-base-api"
-version = "3.2.1"
+version = "3.2.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "curl-cffi" },
     { name = "tenacity" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/63/aa/dd31466d624be6693fb952701c4fdd2829508603af543839b26cecbf2845/eaf_base_api-3.2.1.tar.gz", hash = "sha256:c45f775bb9771e31f12b97b569cd92e30f7d412ea14b223af03531be864cbca0", size = 37048, upload-time = "2026-06-09T11:40:20.277Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/15/42/e86a72ba9fdc62ee2a34be98598cbe30dbe5c4cae240995b1a95631a29c9/eaf_base_api-3.2.4.tar.gz", hash = "sha256:5c87818145a2bc1b9287c3f12ae7c96705a8ff3b0e6e609855eb6f46fbccb6bb", size = 37202, upload-time = "2026-06-11T11:13:45.877Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c1/c7/0ad888daa2f769018c189a424313fc2f144304ef0fb900ecd2d9c635d493/eaf_base_api-3.2.1-py3-none-any.whl", hash = "sha256:f8c8e614326394070400b471ad57db9650bbc48ddfa08810d3e9925b1ab5e0e4", size = 40098, upload-time = "2026-06-09T11:40:21.408Z" },
+    { url = "https://files.pythonhosted.org/packages/f8/25/985f2a6f70caa0880d0315423e44fba89f9a1ab8fed1e4d8a340d39c2b9f/eaf_base_api-3.2.4-py3-none-any.whl", hash = "sha256:c3c8ca96676b05f58fcbebe8334901b7edb733831c7e8a27ed0902ba0ce5a46f", size = 40255, upload-time = "2026-06-11T11:13:44.769Z" },
 ]
 
 [[package]]
