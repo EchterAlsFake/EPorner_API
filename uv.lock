@@ -1,6 +1,10 @@
 version = 1
 revision = 3
 requires-python = ">=3.10"
+resolution-markers = [
+    "python_full_version >= '3.12'",
+    "python_full_version < '3.12'",
+]
 
 [[package]]
 name = "beautifulsoup4"
@@ -29,11 +33,11 @@ wheels = [
 
 [[package]]
 name = "certifi"
-version = "2026.5.20"
+version = "2026.6.17"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f3/ce/ee2ecad540810a79593028e88299baeae54d346cc7a0d94b6199988b89b1/certifi-2026.5.20.tar.gz", hash = "sha256:69dea482ab64caa7b9f6aba1c6bf48bb6a5448d1c0f1b17ab42ad8c763a5344d", size = 135422, upload-time = "2026-05-20T11:46:50.073Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c9/c7/424b75da314c1045981bd9777432fad05a9e0c69daa4ed7e308bbaffe405/certifi-2026.6.17.tar.gz", hash = "sha256:024c88eeec92ca068db80f02b8b07c9cef7b9fe261d1d535abfd5abd6f6af432", size = 134594, upload-time = "2026-06-17T10:31:07.894Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/8c/57e832b7af6d7c5abe66eb3fbe3a3a32f4d11ea23a1aa7131371035be991/certifi-2026.5.20-py3-none-any.whl", hash = "sha256:3c52e209ba0a4ad7aebe60436a4ab349c39e1e602e8c134221e546902ad25897", size = 134134, upload-time = "2026-05-20T11:46:48.578Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/2f/c5464532e965badff2f4c4c1a3a83f5697f0d7c407ed0cda44aaa99bb451/certifi-2026.6.17-py3-none-any.whl", hash = "sha256:2227dcbaafe0d2f59279d1762ddddc37783ed4354594f194ffc31d20f41fc3db", size = 133289, upload-time = "2026-06-17T10:31:06.348Z" },
 ]
 
 [[package]]
@@ -153,24 +157,44 @@ wheels = [
 
 [[package]]
 name = "eaf-base-api"
-version = "3.2.4"
+version = "3.3"
 source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "curl-cffi" },
-    { name = "tenacity" },
+resolution-markers = [
+    "python_full_version < '3.12'",
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/15/42/e86a72ba9fdc62ee2a34be98598cbe30dbe5c4cae240995b1a95631a29c9/eaf_base_api-3.2.4.tar.gz", hash = "sha256:5c87818145a2bc1b9287c3f12ae7c96705a8ff3b0e6e609855eb6f46fbccb6bb", size = 37202, upload-time = "2026-06-11T11:13:45.877Z" }
+dependencies = [
+    { name = "curl-cffi", marker = "python_full_version < '3.12'" },
+    { name = "tenacity", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f1/e9/875310221c40549b8d4471a847d46e24032aeaa761da863a3bada22ff3f4/eaf_base_api-3.3.tar.gz", hash = "sha256:789a86e5fc53dbbdbc2dd6014f5c4bb091824f462c3de046051d47b417b00ba4", size = 37692, upload-time = "2026-06-17T19:53:48.6Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f8/25/985f2a6f70caa0880d0315423e44fba89f9a1ab8fed1e4d8a340d39c2b9f/eaf_base_api-3.2.4-py3-none-any.whl", hash = "sha256:c3c8ca96676b05f58fcbebe8334901b7edb733831c7e8a27ed0902ba0ce5a46f", size = 40255, upload-time = "2026-06-11T11:13:44.769Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/14/e244f3172b222fc4c9dee91cd90f688a7207215afe2275924a0fefd6e994/eaf_base_api-3.3-py3-none-any.whl", hash = "sha256:4e9dc159c79ad2f9f4d713bb512421a0b0e6ccf48b6f335becb7d8ba4ed8fa00", size = 40712, upload-time = "2026-06-17T19:53:47.575Z" },
+]
+
+[[package]]
+name = "eaf-base-api"
+version = "3.3.2"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.12'",
+]
+dependencies = [
+    { name = "curl-cffi", marker = "python_full_version >= '3.12'" },
+    { name = "tenacity", marker = "python_full_version >= '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/28/7a/1bfa4b6904ed2dd2a8d60a7a2c3469d696e4312c754d924b075952e15b6d/eaf_base_api-3.3.2.tar.gz", hash = "sha256:241003c3795f24d4800c4019fbc53e7cb1afebfc9f03bfcedf65a452acb55b80", size = 37763, upload-time = "2026-06-22T09:36:27.082Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4b/de/be75e76677b26bfde4fa515a37fecb738f64a129561a0762652c7df51035/eaf_base_api-3.3.2-py3-none-any.whl", hash = "sha256:bc60f5f948cc2a535a845e0c9b31f4d3dcebbad53c2f576f4d1396007973898c", size = 40805, upload-time = "2026-06-22T09:36:25.705Z" },
 ]
 
 [[package]]
 name = "eporner-api"
-version = "2.0"
+version = "2.1"
 source = { editable = "." }
 dependencies = [
     { name = "bs4" },
-    { name = "eaf-base-api" },
+    { name = "eaf-base-api", version = "3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "eaf-base-api", version = "3.3.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
 
 [package.optional-dependencies]

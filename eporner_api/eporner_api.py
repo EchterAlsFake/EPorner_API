@@ -8,6 +8,8 @@ import argparse
 import traceback
 import threading
 
+from eporner_api.modules.type_hints import on_error_hint
+
 try:
     from .modules.consts import *
     from .modules.locals import *
@@ -37,8 +39,8 @@ from typing import AsyncGenerator
 from functools import cached_property
 from base_api.modules.config import RuntimeConfig
 from base_api.base import BaseCore, setup_logger, Helper
-from base_api.modules.errors import InvalidProxy, BotProtectionDetected, NetworkingError, UnknownError, VideoFetchError, PageFetchError
 from base_api.modules.static_functions import normalize_quality_value, choose_quality_from_list, str_to_bool
+from base_api.modules.errors import InvalidProxy, BotProtectionDetected, NetworkingError, UnknownError, VideoFetchError, PageFetchError, ResourceGone
 
 """
 Copyright (c) 2024-2026 Johannes Habel
@@ -69,6 +71,14 @@ All methods which use the Webmasters API are in compliance with the ToS. Those m
 If you still need additional functionalities and information from videos / Eporner.com you can enable the use of 
 HTML Content. See the Documentation for more details.
 """
+
+async def on_error(url: str, error: Exception, attempt: int) -> bool:
+    print(f"URL: {url}, ERROR: {error}, Attempt: {attempt}")
+
+    if isinstance(error, ResourceGone):
+        return False
+
+    return True
 
 
 async def get_html_content(core: BaseCore, url: str, get_json: bool = False) -> str | None | dict:
@@ -448,7 +458,8 @@ class Pornstar(Helper):
     def enable_logging(self, log_file: str, level, log_ip: str | None = None, log_port: int | None = None):
         self.logger = setup_logger(name="EPorner API - [Pornstar]", log_file=log_file, level=level, http_ip=log_ip, http_port=log_port)
 
-    async def videos(self, pages: int = 0, videos_concurrency: int | None = None, pages_concurrency: int | None = None) -> AsyncGenerator[Video, None]:
+    async def videos(self, pages: int = 0, videos_concurrency: int | None = None, pages_concurrency: int | None = None,
+                     on_video_error: on_error_hint = on_error, on_page_error: on_error_hint = None) -> AsyncGenerator[Video, None]:
         if pages == 0:
             video_amount = str(self.video_amount).replace(",", "")
             pages = round(int(video_amount)) / 37 # One page contains 37 videos
@@ -460,7 +471,8 @@ class Pornstar(Helper):
         pages = round(pages) # Dont ask
         page_urls = [urljoin(f"{self.url}/", str(page)) for page in range(1, pages + 1)]
         async for video in self.iterator(target_page_urls=page_urls, video_link_extractor=extractor, max_page_concurrency=pages_concurrency,
-                                 max_video_concurrency=videos_concurrency):
+                                 max_video_concurrency=videos_concurrency,
+                                         on_video_error=on_video_error, on_page_error=on_page_error):
             if isinstance(video, (VideoFetchError, PageFetchError)):
                 self.logger.error(f"Error during iteration: {video}")
                 continue
@@ -601,8 +613,9 @@ class Client(Helper):
             video = Video(url=id_, core=self.core, enable_html_scraping=enable_html_scraping)
             yield await video.init()
 
-    async def get_videos_by_category(self, category: str | Category, enable_html_scraping: bool = False,
-                               videos_concurrency: int | None = None, pages_concurrency: int | None = None) -> AsyncGenerator[Video, None]:
+    async def get_videos_by_category(self, category: str | Category,
+                               videos_concurrency: int | None = None, pages_concurrency: int | None = None,
+                                     on_video_error: on_error_hint = on_error, on_page_error: on_error_hint = None) -> AsyncGenerator[Video, None]:
 
         page_urls = [f"{ROOT_URL}cat/{category}/{page}" for page in range(1, 100)]
 
@@ -610,7 +623,8 @@ class Client(Helper):
         pages_concurrency = pages_concurrency or self.core.configuration.pages_concurrency
         assert videos_concurrency and pages_concurrency
         async for video in self.iterator(target_page_urls=page_urls, max_video_concurrency=videos_concurrency,
-                                 max_page_concurrency=pages_concurrency, video_link_extractor=extractor):
+                                 max_page_concurrency=pages_concurrency, video_link_extractor=extractor,
+                                         on_video_error=on_video_error, on_page_error=on_page_error):
             if isinstance(video, (VideoFetchError, PageFetchError)):
                 self.logger.error(f"Error during iteration: {video}")
                 continue
