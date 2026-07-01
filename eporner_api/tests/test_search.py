@@ -1,5 +1,5 @@
 import pytest
-from ..eporner_api import Client, Gay, Order, LowQuality
+from ..api import Client, Gay, Order, LowQuality
 
 
 query = "Mia Khalifa"

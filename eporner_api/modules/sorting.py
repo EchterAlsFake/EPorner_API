@@ -1,11 +1,14 @@
-class Gay:
+from enum import StrEnum
+
+
+class Gay(StrEnum):
     # Gay Content
     exclude_gay_content = "0"
     include_gay_content = "1"
     only_gay_content = "2"
 
 
-class Order:
+class Order(StrEnum):
     # Order Sorting
     latest = "latest"
     longest = "longest"
@@ -16,7 +19,7 @@ class Order:
     top_monthly = "top-monthly"
 
 
-class LowQuality:
+class LowQuality(StrEnum):
     # Quality
     exclude_low_quality_content = "0"
     include_low_quality_content = "1"

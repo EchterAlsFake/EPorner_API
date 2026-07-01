@@ -14,6 +14,7 @@ authors = [
     { name = "Johannes Habel", email = "EchterAlsFake@proton.me" }
 ]
 dependencies = [
+    "selectolax",
     "bs4",
     "eaf-base-api",
 ]

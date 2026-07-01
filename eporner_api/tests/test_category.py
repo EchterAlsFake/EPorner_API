@@ -1,5 +1,5 @@
 import pytest
-from ..eporner_api import Client, Category
+from ..api import Client, Category
 from base_api import BaseCore
 
 @pytest.mark.asyncio

@@ -1,5 +1,5 @@
 import pytest
-from ..eporner_api import Client, Encoding, NotAvailable
+from ..api import Client, Encoding, NotAvailable
 
 @pytest.mark.asyncio
 async def test_video():
