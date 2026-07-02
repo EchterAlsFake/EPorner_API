@@ -8,13 +8,14 @@ async def test_pornstar():
     core = BaseCore()
     core.configuration.pages_concurrency = 1
     core.configuration.videos_concurrency = 1
-    pornstar = await Client(core).get_pornstar(url, enable_html_scraping=True)
+    client = Client(core)
+    pornstar = await client.get_pornstar(url, enable_html_scraping=True)
 
     videos = pornstar.videos(pages=1)
     
     idx = 0
-    async for video in videos:
-        assert isinstance(video.title, str) and len(video.title) > 3
+    async for result in videos:
+        assert isinstance(result.video.title, str) and len(result.video.title) > 3
         if idx == 5:
             break
         idx += 1

@@ -1,33 +1,3 @@
-class InvalidURL(Exception):
-    def __init__(self, msg):
-        super().__init__(msg)
-        self.msg = msg
-
-
-class HTML_IS_DISABLED(Exception):
-    def __init__(self, msg):
-        super().__init__(msg)
-        self.msg = msg
-
-
-class NotAvailable(Exception):
-    def __init__(self, msg):
-        super().__init__(msg)
-        self.msg = msg
-
-
-class VideoDisabled(Exception):
-    def __init__(self, msg):
-        super().__init__(msg)
-        self.msg = msg
-
-
-class InvalidVideo(Exception):
-    def __init__(self, msg):
-        super().__init__(msg)
-        self.msg = msg
-
-
 class NotFound(Exception):
     def __init__(self, msg: str):
         super().__init__(msg)
