@@ -10,7 +10,7 @@ async def test_video():
     assert isinstance(video.title, str) and len(video.title) > 0
     assert isinstance(video.video_id, str) and len(video.video_id) > 0
     assert isinstance(video.keywords, list) and len(video.keywords) > 0
-    assert isinstance(video.views, str) and len(video.views) > 0
+    assert isinstance(video.views, int)
     assert isinstance(video.rate, str) and len(video.rate) > 0
     assert isinstance(video.publish_date, str) and len(video.publish_date) > 0
     assert isinstance(video.length_seconds, int) and video.length_seconds > 0

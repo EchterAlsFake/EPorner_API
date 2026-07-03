@@ -43,7 +43,7 @@ async def get_html_content(core: BaseCore, url: str, get_json: bool = False) -> 
         content = await core.fetch(url)
         if isinstance(content, str):
             if get_json:
-                return json.loads(content)
+                return json.loads(content, strict=False)
 
             return content
 
@@ -70,7 +70,7 @@ class VideoMetadata:
     video_id: str
     keywords: list
     title: str
-    views: str
+    views: int | None
     rate: str
     publish_date: str
     length: str
@@ -100,9 +100,12 @@ class Video:
 
     @property
     def video_id(self) -> str:
-        return re.search(r'video-([^/]+)', self.metadata.url).group(1)
+        return self.metadata.video_id
 
     # The following functions are all related to the webmaster API!
+    @property
+    def url(self) -> str:
+        return self.metadata.url
 
     @property
     def title(self) -> str:
@@ -113,7 +116,7 @@ class Video:
         return self.metadata.keywords
 
     @property
-    def views(self) -> str:
+    def views(self) -> int | None:
         return self.metadata.views
 
     @property
@@ -201,7 +204,6 @@ class Video:
             configuration.path = os.path.join(configuration.path, f"{self.title}.mp4")
 
         try:
-            print(f"Downloading: {url}")
             await self.core.legacy_download(url=url, configuration=configuration)
             return True
 
@@ -222,8 +224,13 @@ class VideoBuilder:
         self.allow_html = allow_html
         self.html_content = html_content
         self.lexbor: LexborHTMLParser | None = None
-        self.json_data: dict = {}
-        self.json_html: dict = {}
+        self.json_data: dict | None = None
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.clean()
 
     async def clean(self):
         self.url = None
@@ -269,7 +276,7 @@ class VideoBuilder:
             return {}
 
         script = self.lexbor.css_first("script[type='application/ld+json']")
-        return json.loads(script.text())
+        return json.loads(script.text(), strict=False)
 
     async def init(self) -> Video:
         url = f"{ROOT_URL}{API_VIDEO_ID}?id={self.video_id}&thumbsize=medium&format=json"
@@ -277,7 +284,7 @@ class VideoBuilder:
         content = await get_html_content(url=url, core=core)
         assert isinstance(content, str)
 
-        self.json_data = json.loads(content)
+        self.json_data = json.loads(content, strict=False)
 
         if self.allow_html:
             self.html_content = await get_html_content(core=self.core, url=self.url)
@@ -288,7 +295,15 @@ class VideoBuilder:
 
     @cached_property
     def video_id(self) -> str:
-        return re.search(r'video-([^/]+)', self.url).group(1)
+        match = re.search(r'video-([^/]+)', self.url)
+        if match:
+            return match.group(1)
+
+        match_2 = re.search(r'hd-porn/(.*?)/', self.url)
+        if match_2:
+            return match_2.group(1)
+
+        return None
 
     # The following functions are all related to the webmaster API!
 
@@ -301,8 +316,8 @@ class VideoBuilder:
         return self.json_data.get("keywords", "").split(",")
 
     @cached_property
-    def views(self) -> str:
-        return self.json_data.get("views", "")
+    def views(self) -> int | None:
+        return self.json_data.get("views", None)
 
     @cached_property
     def rate(self) -> str:
@@ -423,14 +438,14 @@ class VideoBuilder:
 
 class Pornstar(Helper):
     def __init__(self, url: str, core: BaseCore, enable_html_scraping: bool = False, html_content=None):
-        super().__init__(core=core, video_constructor=Video)
+        super().__init__(core=core, video_constructor=VideoBuilder)
         self.core = core
         self.url = url
         self.enable_html_scraping = enable_html_scraping
         self.lexbor: LexborHTMLParser | None = None
         self.logger = setup_logger(name="EPorner API - [Pornstar]", log_file=None, level=logging.CRITICAL)
         self.html_content = html_content
-        
+
     async def init(self):
         if not self.html_content:
             self.html_content = await get_html_content(core=self.core, url=self.url)
@@ -492,7 +507,7 @@ class Pornstar(Helper):
     @cached_property
     def profile_views(self) -> str:
         """Returns the number of profile views"""
-        return self.lexbor.css_first("div.psbio.ps3").css("div")[1].css_first("span").text(strip=True)
+        return self.lexbor.css_first("div.psbio.ps3 > div:nth-child(2) > span").text(strip=True)
 
     @cached_property
     def video_views(self) -> str:
@@ -558,7 +573,7 @@ class Pornstar(Helper):
     @cached_property
     def biography(self) -> str:
         """Returns the biography of the pornstar"""
-        return self.lexbor.css_first("div.psscrol").css_first("p").text(strip=True)
+        return self.lexbor.css_first("div.psscrol > p").text(strip=True)
 
 
 class Client(Helper):
@@ -659,17 +674,5 @@ async def run_main():
         for video in videos:
             await video.download(config, mode=Encoding.mp4_h264)
 
-async def xd():
-    client = Client()
-    video = await client.get_video("https://www.eporner.com/video-pDRNfJoN7dN/granny-with-young-guy/")
-    print(video.get_url_by_quality("720p", mode=Encoding.mp4_h264))
-    await video.download(configuration=DownloadConfigRAW(quality="1080p"), mode=Encoding.mp4_h264)
-
-
-
-
-def main():
-    asyncio.run(xd())
-
 if __name__ == "__main__":
-    main()
+    asyncio.run(run_main())
