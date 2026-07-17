@@ -2,7 +2,6 @@ import re
 import json
 from selectolax.lexbor import LexborHTMLParser
 
-
 # ROOT URLs
 ROOT_URL = "https://www.eporner.com/"
 PORNSTAR = "https://www.eporner.com/pornstar/"
@@ -16,23 +15,121 @@ headers = {
 }
 
 
-def extractor(content: str) -> list[str]:
-    video_urls = []
+def extractor(content: str) -> list[dict]:
+    videos_data = []
     lexbor = LexborHTMLParser(content)
-    divs = lexbor.css("div.mb.hdy")
-    for div in divs:
-        a_tag = div.css_first("a")
-        url = f"https://www.eporner.com{a_tag.attributes.get("href")}"
-        video_urls.append(url)
+    # Target individual video block containers
+    video_nodes = lexbor.css("div.mb")
 
-    return video_urls
+    for node in video_nodes:
+        video_id = node.attributes.get("data-id")
+
+        # 1. URL and Title
+        title_node = node.css_first("p.mbtit a")
+        url = title_node.attributes.get("href") if title_node else None
+        title = title_node.text(strip=True) if title_node else None
+
+        # 2. Thumbnail Processing (Handles lazy-loaded images safely)
+        img_node = node.css_first("div.mbimg img")
+        thumbnail = None
+        if img_node:
+            # Check data-src first (used on lazy-loaded items), fall back to standard src
+            thumbnail = img_node.attributes.get("data-src") or img_node.attributes.get("src")
+
+        thumbnails = [thumbnail] if thumbnail else []
+
+        # 3. Stats & Duration Parsing
+        length_minutes = None
+        length_seconds = None
+        rate = None
+        views = None
+
+        # Parse Duration strings (Format is usually MM:SS or HH:MM:SS)
+        time_node = node.css_first("span.mbtim")
+        if time_node:
+            time_str = time_node.text(strip=True)
+            time_parts = time_str.split(":")
+            try:
+                if len(time_parts) == 2:  # MM:SS
+                    length_minutes = time_parts[0]
+                    length_seconds = str(int(time_parts[0]) * 60 + int(time_parts[1]))
+                elif len(time_parts) == 3:  # HH:MM:SS
+                    length_minutes = str(int(time_parts[0]) * 60 + int(time_parts[1]))
+                    length_seconds = str(int(time_parts[0]) * 3600 + int(time_parts[1]) * 60 + int(time_parts[2]))
+            except ValueError:
+                pass  # Keep as None if parsing fails due to bad strings
+
+        # Rating (e.g., "85%")
+        rate_node = node.css_first("span.mbrate")
+        if rate_node:
+            rate = rate_node.text(strip=True)
+
+        # Views count conversion (Strips localized commas)
+        views_node = node.css_first("span.mbvie")
+        if views_node:
+            views_str = views_node.text(strip=True).replace(",", "")
+            try:
+                views = int(views_str)
+            except ValueError:
+                pass
+
+        # 4. Author/Uploader Profile Link
+        authors_urls = None
+        uploader_node = node.css_first("span.mb-uploader a")
+        if uploader_node:
+            author_href = uploader_node.attributes.get("href")
+            if author_href:
+                authors_urls = [author_href]
+
+        # Structure payload matching your Video dataclass keys
+        videos_data.append({
+            "url": url,
+            "video_id": video_id,
+            "title": title,
+            "views": views,
+            "rate": rate,
+            "length_seconds": length_seconds,
+            "length_minutes": length_minutes,
+            "thumbnail": thumbnail,
+            "thumbnails": thumbnails,
+            "authors_urls": authors_urls
+        })
+
+    return videos_data
 
 
 def extractor_json(content: str) -> list[str]:
-    video_urls = []
+    videos = []
     stuff = json.loads(content)
 
-    for video_ in stuff.get("videos", []):  # Don't know why this works lmao
-        video_urls.append(video_["url"])
+    for video in stuff.get("videos", []):  # Don't know why this works lmao
+        url = video.get("url")
+        video_id = video.get("video_id")
+        title = video.get("title")
+        keywords = video.get("keywords")
+        views = video.get("views")
+        rate = video.get("rate")
+        publish_date = video.get("added")
+        length_seconds = video.get("length_sec")
+        length_minutes = video.get("length_min")
+        embed_url = video.get("embed_url")
+        thumbnail = video.get("default_thumb").get("src")
+        thumbnails = video.get("thumbs")
 
-    return video_urls
+        videos.append({
+            "url": url,
+            "title": title,
+            "keywords": keywords,
+            "views": views,
+            "rate": rate,
+            "publish_date": publish_date,
+            "length_seconds": length_seconds,
+            "length_minutes": length_minutes,
+            "embed_url": embed_url,
+            "thumbnail": thumbnail,
+            "thumbnails": thumbnails,
+            "video_id": video_id
+
+        })
+
+    return videos

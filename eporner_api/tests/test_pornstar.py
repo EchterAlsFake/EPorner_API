@@ -9,7 +9,7 @@ async def test_pornstar():
     core.configuration.pages_concurrency = 1
     core.configuration.videos_concurrency = 1
     client = Client(core)
-    pornstar = await client.get_pornstar(url, enable_html_scraping=True)
+    pornstar = await client.get_pornstar(url, load_html=True)
 
     videos = pornstar.videos(pages=1)
     
