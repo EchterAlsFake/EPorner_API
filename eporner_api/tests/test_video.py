@@ -24,6 +24,6 @@ async def test_video():
     async for author in video.get_authors():
         assert isinstance(author.name, str)
 
-    config = DownloadConfigRAW(quality="best", path="./")
+    config = DownloadConfigRAW(quality="worst", path="./")
 
     assert await video.download(config, mode=Encoding.mp4_h264) is True

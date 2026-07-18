@@ -448,15 +448,25 @@ class Client:
 
 
 async def run_main():
-    parser = argparse.ArgumentParser(description="API Command Line Interface")
-    parser.add_argument("--download", metavar="URL (str)", type=str, help="URL to download from")
-    parser.add_argument("--quality", metavar="best,half,worst", type=str, help="The video quality (best,half,worst)",
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich_argparse import RichHelpFormatter
+    
+    console = Console()
+    console.print(Panel.fit("[bold magenta]EPorner API CLI[/bold magenta]", border_style="cyan"))
+
+    parser = argparse.ArgumentParser(
+        description="API Command Line Interface",
+        formatter_class=RichHelpFormatter
+    )
+    parser.add_argument("--download", metavar="URL", type=str, help="URL to download from")
+    parser.add_argument("--quality", metavar="best|half|worst", type=str, help="The video quality (best, half, worst)",
                         required=True)
-    parser.add_argument("--file", metavar="Source to .txt file", type=str,
+    parser.add_argument("--file", metavar="FILE", type=str,
                         help="(Optional) Specify a file with URLs (separated with new lines)")
-    parser.add_argument("--output", metavar="Output directory", type=str, help="The output path (with filename)",
+    parser.add_argument("--output", metavar="DIR", type=str, help="The output path (with filename)",
                         required=True)
-    parser.add_argument("--no-title", metavar="True,False", type=str,
+    parser.add_argument("--no-title", metavar="True|False", type=str,
                         help="Whether to apply video title automatically to output path or not", required=True)
 
     args = parser.parse_args()
@@ -465,21 +475,32 @@ async def run_main():
 
     if args.download:
         client = Client()
+        console.print(f"[cyan]Fetching video information for:[/cyan] [yellow]{args.download}[/yellow]")
         video = await client.get_video(args.download, load_html=True)
+        console.print(f"[green]Starting download for:[/green] [bold]{video.title}[/bold]")
         await video.download(config, mode=Encoding.mp4_h264)
+        console.print("[bold green]Download complete![/bold green]")
 
     if args.file:
-        videos = []
         client = Client()
 
         with open(args.file, "r") as file:
-            content = file.read().splitlines()
+            content = [line.strip() for line in file.readlines() if line.strip()]
 
-        for url in content:
-            videos.append(await client.get_video(url, load_html=True))
+        console.print(f"[cyan]Fetching information for {len(content)} videos concurrently...[/cyan]")
+        
+        fetch_tasks = [client.get_video(url, load_html=True) for url in content]
+        videos = await asyncio.gather(*fetch_tasks)
 
-        for video in videos:
-            await video.download(config, mode=Encoding.mp4_h264)
+        console.print(f"[cyan]Downloading {len(videos)} videos concurrently...[/cyan]")
+        
+        download_tasks = [video.download(config, mode=Encoding.mp4_h264) for video in videos]
+        await asyncio.gather(*download_tasks)
+        
+        console.print("[bold green]All downloads complete![/bold green]")
+
+def main():
+    asyncio.run(run_main())
 
 if __name__ == "__main__":
-    asyncio.run(run_main())
+    main()

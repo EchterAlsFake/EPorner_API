@@ -26,8 +26,9 @@ keywords = [
 ]
 dependencies = [
     "selectolax",
-    "eaf-base-api",
+    "eaf-base-api"
 ]
+
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -40,13 +41,27 @@ classifiers = [
     "Topic :: Multimedia :: Video"
 ]
 
+
+[project.optional-dependencies]
+cli = [
+    "rich",
+    "rich-argparse"
+]
+
 [project.urls]
 Homepage = "https://github.com/EchterAlsFake/unofficial-api-for-eporner"
 Repository = "https://github.com/EchterAlsFake/unofficial-api-for-eporner"
 "Bug Tracker" = "https://github.com/EchterAlsFake/unofficial-api-for-eporner/issues"
+"Support me on Ko-Fi" = "https://ko-fi.com/EchterAlsFake"
+"Donate via PayPal" = "https://paypal.me/EchterAlsFake"
+"Donate via Crypto" = "https://nowpayments.io/donation/EchterAlsFake"
+
 [project.scripts]
-eporner_api = "eporner_api.eporner_api:main"
+eporner_api = "eporner_api.api:main"
 
 [tool.uv.build-backend]
 module-name = "eporner_api"
 module-root = ""
+
+[tool.uv.sources]
+eaf-base-api = { path = "../eaf_base_api", editable = true }
